@@ -5,6 +5,7 @@ beautifulsoup4
 dnspython
 ffmpeg-python
 gitpython
+gTTS
 hachoir
 heroku3
 httpx[http2]
