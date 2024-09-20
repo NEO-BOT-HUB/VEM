@@ -49,7 +49,7 @@ from DnsXMusic.utils.stream.stream import stream
             "cvplayforce",
             "lay",
         ],
-        prefixes=["/", "!", "%", ",", "@", "#", "p", "P"],
+        prefixes=["/", "!", "%", ",", "@", "#", "p", "P","c", "C", "v", "V"],
     )
     & filters.group
     & ~BANNED_USERS
