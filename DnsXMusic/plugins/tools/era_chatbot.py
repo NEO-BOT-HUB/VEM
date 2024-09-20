@@ -6,14 +6,15 @@ from pyrogram import filters
 from pyrogram.enums import ChatAction, ParseMode
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from DnsXMusic import app
+from prometheus_client import start_http_server, Counter
 
 # List of supported emojis for reactions
 EMOJI_LIST = [
-    "👍", "👎", "❤️", "🔥", "🥳", "👏", "😁", "😂", "😲", "😱", 
-    "😢", "😭", "🎉", "😇", "😍", "😅", "💩", "🙏", "🤝", "🍓", 
-    "🎃", "👀", "💯", "😎", "🤖", "🐵", "👻", "🎄", "🥂", "🎅", 
-    "❄️", "✍️", "🎁", "🤔", "💔", "🥰", "😢", "🥺", "🙈", "🤡", 
-    "😋", "🎊", "🍾", "🌟", "👶", "🦄", "💤", "😷", "👨‍💻", "🍌", 
+    "👍", "👎", "❤️", "🔥", "🥳", "👏", "😁", "😂", "😲", "😱",
+    "😢", "😭", "🎉", "😇", "😍", "😅", "💩", "🙏", "🤝", "🍓",
+    "🎃", "👀", "💯", "😎", "🤖", "🐵", "👻", "🎄", "🥂", "🎅",
+    "❄️", "✍️", "🎁", "🤔", "💔", "🥰", "😢", "🥺", "🙈", "🤡",
+    "😋", "🎊", "🍾", "🌟", "👶", "🦄", "💤", "😷", "👨‍💻", "🍌",
     "🍓", "💀", "👨‍🏫", "🤝", "☠️", "🎯", "🍕", "🦾", "🔥", "💃"
 ]
 
@@ -36,7 +37,7 @@ def to_small_caps(text):
 
     words = text.split()
     transformed_words = []
-    
+
     for word in words:
         if word.startswith('@'):
             transformed_words.append(word)
@@ -77,12 +78,17 @@ async def read_more_callback(client, callback_query):
     else:
         await callback_query.message.edit_text("Message not found.", parse_mode=ParseMode.MARKDOWN)
 
+# Start Prometheus monitoring
+start_http_server(8000)
+request_counter = Counter('telegram_bot_requests_total', 'Total number of requests to the Telegram bot')
+
 # Handler for direct messages (DMs)
-@app.on_message(filters.group & ~filters.private & ~filters.service)
+@app.on_message(filters.private)
 async def gemini_dm_handler(client, message):
     await react_with_random_emoji(client, message)
     await app.send_chat_action(message.chat.id, ChatAction.TYPING)
-    
+    request_counter.inc()
+
     user_input = message.text
 
     try:
@@ -96,16 +102,16 @@ async def gemini_dm_handler(client, message):
 
             if image_url:
                 await message.reply_photo(
-                    image_url, 
-                    caption=truncated_response, 
+                    image_url,
+                    caption=truncated_response,
                     reply_markup=InlineKeyboardMarkup(
                         [[InlineKeyboardButton("Read More", callback_data=f"read_more:{message.id}")]]
-                    ), 
+                    ),
                     quote=True
                 )
             else:
                 await message.reply_text(
-                    truncated_response, 
+                    truncated_response,
                     reply_markup=InlineKeyboardMarkup(
                         [[InlineKeyboardButton("Read More", callback_data=f"read_more:{message.id}")]]
                     ),
@@ -123,7 +129,6 @@ async def gemini_group_handler(client, message):
 
     # Ensure that the message contains text
     if message.text:
-
         # Ignore message if it starts with '/'
         if message.text.startswith('/'):
             return
@@ -132,6 +137,7 @@ async def gemini_group_handler(client, message):
         if message.reply_to_message and message.reply_to_message.from_user.username == bot_username:
             await react_with_random_emoji(client, message)
             await app.send_chat_action(message.chat.id, ChatAction.TYPING)
+            request_counter.inc()
 
             user_input = message.text.strip()
             try:
@@ -145,30 +151,31 @@ async def gemini_group_handler(client, message):
 
                     if image_url:
                         await message.reply_photo(
-                            image_url, 
-                            caption=truncated_response, 
+                            image_url,
+                            caption=truncated_response,
                             reply_markup=InlineKeyboardMarkup(
                                 [[InlineKeyboardButton("Read More", callback_data=f"read_more:{message.id}")]]
-                            ), 
+                            ),
                             quote=True
                         )
                     else:
                         await message.reply_text(
-                            truncated_response, 
+                            truncated_response,
                             reply_markup=InlineKeyboardMarkup(
                                 [[InlineKeyboardButton("Read More", callback_data=f"read_more:{message.id}")]]
-                            ), 
+                            ),
                             quote=True
                         )
                 else:
                     await message.reply_text(to_small_caps("sᴏʀʀʏ sɪʀ! ᴘʟᴇᴀsᴇ Tʀʏ ᴀɢᴀɪɴ"), quote=True)
             except requests.exceptions.RequestException as e:
                 pass
-        
+
         # Check if the bot's username is mentioned anywhere in the text
         elif f"@{bot_username}" in message.text:
             await react_with_random_emoji(client, message)
             await app.send_chat_action(message.chat.id, ChatAction.TYPING)
+            request_counter.inc()
 
             user_input = message.text.replace(f"@{bot_username}", "").strip()
 
@@ -183,19 +190,19 @@ async def gemini_group_handler(client, message):
 
                     if image_url:
                         await message.reply_photo(
-                            image_url, 
-                            caption=truncated_response, 
+                            image_url,
+                            caption=truncated_response,
                             reply_markup=InlineKeyboardMarkup(
                                 [[InlineKeyboardButton("Read More", callback_data=f"read_more:{message.id}")]]
-                            ), 
+                            ),
                             quote=True
                         )
                     else:
                         await message.reply_text(
-                            truncated_response, 
+                            truncated_response,
                             reply_markup=InlineKeyboardMarkup(
                                 [[InlineKeyboardButton("Read More", callback_data=f"read_more:{message.id}")]]
-                            ), 
+                            ),
                             quote=True
                         )
                 else:
