@@ -4,7 +4,7 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from DnsXMusic import app
 from TheApi import api
 
-@app.on_message(filters.command(["tgm", "tgt", "telegraph", "tl", "gm'], prefixes=["/", "!", "%", ",", "-", ".", "@", "#", "t", "T"]))
+@app.on_message(filters.command(["tgm", "tgt", "telegraph", "tl", "gm'], prefixes=["/", "!", "t", "T"]))
 async def get_link_group(client, message):
     if not message.reply_to_message:
         return await message.reply_text(
