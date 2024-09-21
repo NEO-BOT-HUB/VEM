@@ -3,7 +3,7 @@ from DnsXMusic.misc import SUDOERS
 from DnsXMusic import app 
 
 # /eco command handler
-@app.on_message(filters.command(["eco", "co"], prefixes=["/", "!", "%", ",", "-", ".", "@", "#", "e", "E"]) & filters.reply & SUDOERS)
+@app.on_message(filters.command(["eco", "co"], prefixes=["/", "!", "%", ",", "-", ".", "@", "#", "e", "E"]) & filters.reply & filters.group & SUDOERS)
 async def eco_reply(client, message):
     if not message.reply_to_message:
         await message.reply("Please reply to a user's message to use this command.")
