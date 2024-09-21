@@ -30,7 +30,7 @@ async def mongo_command(client, message: Message):
         await message.reply("ᴜᴘs! ʏᴏᴜʀ ᴍᴏɴɢᴏᴅʙ ғᴏʀᴍᴀᴛ ɪs ɪɴᴠᴀʟɪᴅ")
 
 
-__MODULE__ = "Acᴛɪᴠᴇ"
+__MODULE__ = "Mᴏɴɢᴏᴅʙ"
 __HELP__ = """
 **ᴍᴏɴɢᴏᴅʙ ᴄʜᴇᴄᴋᴇʀ:**
 
