@@ -43,11 +43,28 @@ from .help import paginate_modules
 loop = asyncio.get_running_loop()
 
 
+@app.on_message(group=-1)
+async def ban_new(client, message):
+    user_id = (
+        message.from_user.id if message.from_user and message.from_user.id else 777000
+    )
+    chat_name = message.chat.title if message.chat.title else ""
+    if await is_banned_user(user_id):
+        try:
+            alert_message = f"😳"
+            BAN = await message.chat.ban_member(user_id)
+            if BAN:
+                await message.reply_text(alert_message)
+        except:
+            pass
+
+
 @app.on_message(filters.command(["start"]) & filters.private & ~BANNED_USERS)
 @LanguageStart
 async def start_comm(client, message: Message, _):
     chat_id = message.chat.id
     await add_served_user(message.from_user.id)
+    await message.react("🕊️")
     if len(message.text.split()) > 1:
         name = message.text.split(None, 1)[1]
         if name[0:4] == "help":
@@ -207,37 +224,70 @@ async def start_comm(client, message: Message, _):
                     f"{message.from_user.mention} ʜᴀs ᴊᴜsᴛ sᴛᴀʀᴛᴇᴅ ʙᴏᴛ ᴛᴏ ᴄʜᴇᴄᴋ<code> ᴠɪᴅᴇᴏ ɪɴғᴏʀᴍᴀᴛɪᴏɴ </code>\n\n**ᴜsᴇʀ ɪᴅ:** {sender_id}\n**ᴜsᴇʀ ɴᴀᴍᴇ** {sender_name}",
                 )
     else:
-        try:
-            await app.resolve_peer(OWNER_ID[0])
-            OWNER = OWNER_ID[0]
-        except:
-            OWNER = None
-        out = private_panel(_, app.username, OWNER)
-        if config.START_IMG_URL:
-            try:
-                await message.reply_photo(
-                    photo=config.START_IMG_URL,
-                    caption=_["start_1"].format(app.mention),
-                    reply_markup=InlineKeyboardMarkup(out),
-                )
-            except:
-                await message.reply_text(
-                    text=_["start_1"].format(app.mention),
-                    reply_markup=InlineKeyboardMarkup(out),
-                )
-        else:
-            await message.reply_text(
-                text=_["start_1"].format(app.mention),
+        out = private_panel(_)
+        dns = await message.reply_text(
+            f"**𝐖𝐞𝐥𝐜𝐨𝐦𝐞 𝐁𝐚𝐛𝐲 ꨄ︎ {message.from_user.mention}**"
+        )
+        await dns.edit_text(f"**𝐖𝐞𝐥𝐜𝐨𝐦𝐞 𝐁𝐚𝐛𝐲 ꨄ︎ {message.from_user.mention}  ❣️**")
+        await dns.edit_text(f"**𝐖𝐞𝐥𝐜𝐨𝐦𝐞 𝐁𝐚𝐛𝐲 ꨄ︎ {message.from_user.mention}  🐥**")
+        await dns.edit_text(f"**𝐖𝐞𝐥𝐜𝐨𝐦𝐞 𝐁𝐚𝐛𝐲 ꨄ︎ {message.from_user.mention}  ✨**")
+        await dns.edit_text(f"**𝐖𝐞𝐥𝐜𝐨𝐦𝐞 𝐁𝐚𝐛𝐲 ꨄ︎ {message.from_user.mention}  😻**")
+        await dns.edit_text(f"**𝐖𝐞𝐥𝐜𝐨𝐦𝐞 𝐁𝐚𝐛𝐲 ꨄ︎ {message.from_user.mention}  🎉**")
+
+        await dns.delete()
+        dnss = await message.reply_text("**⚡s**")
+        await asyncio.sleep(0.2)
+        await dnss.edit_text("**⚡sᴛ**")
+        await asyncio.sleep(0.2)
+        await dnss.edit_text("**⚡sᴛᴀ**")
+        await asyncio.sleep(0.2)
+        await dnss.edit_text("**⚡sᴛᴀʀ**")
+        await asyncio.sleep(0.2)
+        await dnss.edit_text("**⚡sᴛᴀʀᴛ**")
+        await asyncio.sleep(0.2)
+        await dnss.edit_text("**⚡sᴛᴀʀᴛɪɴ**")
+        await asyncio.sleep(0.2)
+        await dnss.edit_text("**⚡sᴛᴀʀᴛɪɴɢ.**")
+        await asyncio.sleep(0.2)
+        await dnss.edit_text("**⚡sᴛᴀʀᴛɪɴɢ..**")
+        await asyncio.sleep(0.2)
+        await dnss.edit_text("**⚡sᴛᴀʀᴛɪɴɢ...**")
+        await asyncio.sleep(0.1)
+        await dnss.edit_text("**⚡sᴛᴀʀᴛɪɴɢ.**")
+        await asyncio.sleep(0.1)
+        await dnss.edit_text("**⚡sᴛᴀʀᴛɪɴɢ....**")
+        await asyncio.sleep(0.1)
+        photo_file = await app.download_media(message.from_user.photo.big_file_id)
+        await dnss.delete()
+        done = await message.reply_text("💻")
+        await asyncio.sleep(0.5)
+        await done.delete()
+        if photo_file:
+            await message.reply_photo(
+                photo=photo_file,
+                caption=_["start_2"].format(message.from_user.mention, app.mention),
                 reply_markup=InlineKeyboardMarkup(out),
             )
-        if await is_on_off(config.LOG):
-            sender_id = message.from_user.id
-            sender_name = message.from_user.first_name
-            return await app.send_message(
-                config.LOG_GROUP_ID,
-                f"{message.from_user.mention} ʜᴀs sᴛᴀʀᴛᴇᴅ ʙᴏᴛ. \n\n**ᴜsᴇʀ ɪᴅ :** {sender_id}\n**ᴜsᴇʀ ɴᴀᴍᴇ:** {sender_name}",
+            if await is_on_off(config.LOG):
+                sender_id = message.from_user.id
+                sender_name = message.from_user.first_name
+                return await app.send_message(
+                    config.LOG_GROUP_ID,
+                    f"{message.from_user.mention} ʜᴀs sᴛᴀʀᴛᴇᴅ ʙᴏᴛ. \n\n**ᴜsᴇʀ ɪᴅ :** {sender_id}\n**ᴜsᴇʀ ɴᴀᴍᴇ:** {sender_name}",
+                )
+        else:
+            await message.reply_photo(
+                photo=config.START_IMG_URL,
+                caption=_["start_2"].format(message.from_user.mention, app.mention),
+                reply_markup=InlineKeyboardMarkup(out),
             )
-
+            if await is_on_off(config.LOG):
+                sender_id = message.from_user.id
+                sender_name = message.from_user.first_name
+                return await app.send_message(
+                    config.LOG_GROUP_ID,
+                    f"{message.from_user.mention} ʜᴀs sᴛᴀʀᴛᴇᴅ ʙᴏᴛ. \n\n**ᴜsᴇʀ ɪᴅ :** {sender_id}\n**ᴜsᴇʀ ɴᴀᴍᴇ:** {sender_name}",
+                )
 
 @app.on_message(filters.command(["start"]) & filters.group & ~BANNED_USERS)
 @LanguageStart
