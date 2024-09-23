@@ -13,6 +13,8 @@ httpx[http2]
 lyricsgenius
 motor
 MukeshAPI
+pyttsx3
+pyrogram
 pillow==9.5.0
 psutil
 pytube
