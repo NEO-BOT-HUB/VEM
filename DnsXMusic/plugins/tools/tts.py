@@ -1,13 +1,12 @@
 from DnsXMusic import app
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-import pyttsx3
+from gtts_token.gtts_token import GoogleTokenGenerator
+from gtts import gTTS
 import os
 import hashlib
 import json
 from datetime import datetime
-
-engine = pyttsx3.init()
 
 # Cache for storing generated audio files
 audio_cache = {}
@@ -16,7 +15,6 @@ audio_cache = {}
 usage_stats = {
     "total_requests": 0,
     "language_usage": {},
-    "voice_usage": {}
 }
 
 # Load stats from file if it exists
@@ -24,9 +22,8 @@ if os.path.exists("tts_stats.json"):
     with open("tts_stats.json", "r") as f:
         usage_stats = json.load(f)
 
-# Get available voices and languages
-available_voices = engine.getProperty('voices')
-available_languages = list(set(voice.languages[0] for voice in available_voices if voice.languages))
+# Available languages in gTTS
+available_languages = ['af', 'ar', 'bg', 'bn', 'bs', 'ca', 'cs', 'da', 'de', 'el', 'en', 'es', 'et', 'fi', 'fr', 'gu', 'hi', 'hr', 'hu', 'id', 'is', 'it', 'ja', 'jw', 'km', 'kn', 'ko', 'la', 'lv', 'ml', 'mr', 'my', 'ne', 'nl', 'no', 'pl', 'pt', 'ro', 'ru', 'si', 'sk', 'sq', 'sr', 'su', 'sv', 'sw', 'ta', 'te', 'th', 'tl', 'tr', 'uk', 'ur', 'vi', 'zh-CN', 'zh-TW']
 
 @app.on_message(filters.command(["tts", "ts"], prefixes=["/", "!", ".", "T", "t"]))
 async def tts(client, message):
@@ -38,27 +35,21 @@ async def tts(client, message):
         # If replying to a message
         await process_tts(message, text=message.reply_to_message.text)
     else:
-        # If no text is provided, show voice options
+        # If no text is provided, show language options
         keyboard = []
-        for lang in available_languages:
-            keyboard.append([
-                InlineKeyboardButton(f"Default ({lang})", callback_data=f"tts_default_{lang}"),
-                InlineKeyboardButton(f"Male ({lang})", callback_data=f"tts_male_{lang}")
-            ])
-            keyboard.append([
-                InlineKeyboardButton(f"Female ({lang})", callback_data=f"tts_female_{lang}"),
-                InlineKeyboardButton(f"Child ({lang})", callback_data=f"tts_child_{lang}")
-            ])
+        for i in range(0, len(available_languages), 2):
+            row = [InlineKeyboardButton(lang, callback_data=f"tts_{lang}") for lang in available_languages[i:i+2]]
+            keyboard.append(row)
         markup = InlineKeyboardMarkup(keyboard)
-        await message.reply_text("Choose a voice option and language, or provide text after the command:", reply_markup=markup)
+        await message.reply_text("Choose a language, or provide text after the command:", reply_markup=markup)
 
 @app.on_callback_query(filters.regex("^tts_"))
 async def tts_callback(client, callback_query):
-    voice_option, lang = callback_query.data.split("_")[1:]
-    await process_tts(callback_query.message, voice_option=voice_option, lang=lang)
+    lang = callback_query.data.split("_")[1]
+    await callback_query.message.reply_text(f"Selected language: {lang}. Now, please provide the text you want to convert to speech.")
     await callback_query.answer()
 
-async def process_tts(message, voice_option="default", lang="en-us", text=None):
+async def process_tts(message, lang="en", text=None):
     global usage_stats
     
     if not text:
@@ -68,51 +59,24 @@ async def process_tts(message, voice_option="default", lang="en-us", text=None):
     # Update usage stats
     usage_stats["total_requests"] += 1
     usage_stats["language_usage"][lang] = usage_stats["language_usage"].get(lang, 0) + 1
-    usage_stats["voice_usage"][voice_option] = usage_stats["voice_usage"].get(voice_option, 0) + 1
 
     # Save stats to file
     with open("tts_stats.json", "w") as f:
         json.dump(usage_stats, f)
 
-    # Generate a unique hash for this text and voice combination
-    text_hash = hashlib.md5((text + voice_option + lang).encode()).hexdigest()
+    # Generate a unique hash for this text and language combination
+    text_hash = hashlib.md5((text + lang).encode()).hexdigest()
 
     if text_hash in audio_cache:
         audio_file = audio_cache[text_hash]
     else:
-        # Find appropriate voice
-        target_voice = None
-        for voice in available_voices:
-            if voice.languages and voice.languages[0] == lang:
-                if voice_option == "male" and voice.gender == 'male':
-                    target_voice = voice
-                    break
-                elif voice_option == "female" and voice.gender == 'female':
-                    target_voice = voice
-                    break
-                elif voice_option == "default":
-                    target_voice = voice
-                    break
-        
-        if not target_voice:
-            target_voice = available_voices[0]  # Fallback to first available voice
-
-        engine.setProperty('voice', target_voice.id)
-
-        if voice_option == "child":
-            engine.setProperty('rate', 150)
-        else:
-            engine.setProperty('rate', 130)
-
+        # Use gtts-token to get the Google TTS token
+        token_generator = GoogleTokenGenerator()
+        token = token_generator.get_token(text, lang)
+        tts = gTTS(text=text, lang=lang, tld='com', slow=False, lang_check=False, timeout=10, proxies=None, timeout_duration=15)
+        tts.set_proxy_info(token)
         audio_file = f"output_{text_hash}.mp3"
-        engine.save_to_file(text, audio_file)
-        engine.runAndWait()
-
-        # Apply audio effect (example: increase volume by 1.5x)
-        os.system(f"ffmpeg -i {audio_file} -filter:a 'volume=1.5' {audio_file}_enhanced.mp3")
-        os.remove(audio_file)
-        os.rename(f"{audio_file}_enhanced.mp3", audio_file)
-
+        tts.save(audio_file)
         audio_cache[text_hash] = audio_file
 
     try:
@@ -130,14 +94,11 @@ async def process_tts(message, voice_option="default", lang="en-us", text=None):
                 if file in audio_cache.values():
                     del audio_cache[list(audio_cache.keys())[list(audio_cache.values()).index(file)]]
 
-@app.on_message(filters.command(["ttsstats", "tss"], prefixes=["/", "!", ".", "T", "t"]))
+@app.on_message(filters.command(["tts_stats"], prefixes=["/", "!", ".", "T", "t"]))
 async def tts_stats(client, message):
     stats_message = f"Total TTS requests: {usage_stats['total_requests']}\n\n"
     stats_message += "Language usage:\n"
     for lang, count in usage_stats['language_usage'].items():
         stats_message += f"{lang}: {count}\n"
-    stats_message += "\nVoice usage:\n"
-    for voice, count in usage_stats['voice_usage'].items():
-        stats_message += f"{voice}: {count}\n"
     
     await message.reply_text(stats_message)
