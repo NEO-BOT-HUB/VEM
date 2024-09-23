@@ -1,7 +1,6 @@
 from DnsXMusic import app
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from gtts_token.gtts_token import GoogleTokenGenerator
 from gtts import gTTS
 import os
 import hashlib
@@ -23,7 +22,10 @@ if os.path.exists("tts_stats.json"):
         usage_stats = json.load(f)
 
 # Available languages in gTTS
-available_languages = ['af', 'ar', 'bg', 'bn', 'bs', 'ca', 'cs', 'da', 'de', 'el', 'en', 'es', 'et', 'fi', 'fr', 'gu', 'hi', 'hr', 'hu', 'id', 'is', 'it', 'ja', 'jw', 'km', 'kn', 'ko', 'la', 'lv', 'ml', 'mr', 'my', 'ne', 'nl', 'no', 'pl', 'pt', 'ro', 'ru', 'si', 'sk', 'sq', 'sr', 'su', 'sv', 'sw', 'ta', 'te', 'th', 'tl', 'tr', 'uk', 'ur', 'vi', 'zh-CN', 'zh-TW']
+available_languages = ['af', 'ar', 'bg', 'bn', 'bs', 'ca', 'cs', 'da', 'de', 'el', 'en', 'es', 'et', 'fi', 'fr',
+                       'gu', 'hi', 'hr', 'hu', 'id', 'is', 'it', 'ja', 'jw', 'km', 'kn', 'ko', 'la', 'lv', 'ml',
+                       'mr', 'my', 'ne', 'nl', 'no', 'pl', 'pt', 'ro', 'ru', 'si', 'sk', 'sq', 'sr', 'su', 'sv',
+                       'sw', 'ta', 'te', 'th', 'tl', 'tr', 'uk', 'ur', 'vi', 'zh-CN', 'zh-TW']
 
 @app.on_message(filters.command(["tts", "ts"], prefixes=["/", "!", ".", "T", "t"]))
 async def tts(client, message):
@@ -51,7 +53,7 @@ async def tts_callback(client, callback_query):
 
 async def process_tts(message, lang="en", text=None):
     global usage_stats
-    
+
     if not text:
         await message.reply_text("Please provide text or reply to a message.")
         return
@@ -70,11 +72,7 @@ async def process_tts(message, lang="en", text=None):
     if text_hash in audio_cache:
         audio_file = audio_cache[text_hash]
     else:
-        # Use gtts-token to get the Google TTS token
-        token_generator = GoogleTokenGenerator()
-        token = token_generator.get_token(text, lang)
-        tts = gTTS(text=text, lang=lang, tld='com', slow=False, lang_check=False, timeout=10, proxies=None, timeout_duration=15)
-        tts.set_proxy_info(token)
+        tts = gTTS(text=text, lang=lang)
         audio_file = f"output_{text_hash}.mp3"
         tts.save(audio_file)
         audio_cache[text_hash] = audio_file
@@ -100,5 +98,5 @@ async def tts_stats(client, message):
     stats_message += "Language usage:\n"
     for lang, count in usage_stats['language_usage'].items():
         stats_message += f"{lang}: {count}\n"
-    
+
     await message.reply_text(stats_message)
