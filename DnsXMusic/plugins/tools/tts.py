@@ -92,7 +92,7 @@ async def process_tts(message, lang="en", text=None):
                 if file in audio_cache.values():
                     del audio_cache[list(audio_cache.keys())[list(audio_cache.values()).index(file)]]
 
-@app.on_message(filters.command(["tts_stats"], prefixes=["/", "!", ".", "T", "t"]))
+@app.on_message(filters.command(["tts_stats", "tss"], prefixes=["/", "!", ".", "T", "t"]))
 async def tts_stats(client, message):
     stats_message = f"Total TTS requests: {usage_stats['total_requests']}\n\n"
     stats_message += "Language usage:\n"
