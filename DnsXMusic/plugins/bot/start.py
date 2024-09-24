@@ -292,24 +292,26 @@ async def start_comm(client, message: Message, _):
 @app.on_message(filters.command(["start"]) & filters.group & ~BANNED_USERS)
 @LanguageStart
 async def testbot(client, message: Message, _):
+    photo_file = await app.download_media(message.chat.photo.big_file_id)
     out = alive_panel(_)
     uptime = int(time.time() - _boot_)
     chat_id = message.chat.id
-    if config.START_IMG_URL:
+    if photo_file:
+        await message.reply_photo(
+            photo=photo_file,
+            caption=_["start_7"].format(app.mention, get_readable_time(uptime)),
+            reply_markup=InlineKeyboardMarkup(out),
+        )
+    else:
         await message.reply_photo(
             photo=config.START_IMG_URL,
             caption=_["start_7"].format(app.mention, get_readable_time(uptime)),
             reply_markup=InlineKeyboardMarkup(out),
         )
-    else:
-        await message.reply_text(
-            text=_["start_7"].format(app.mention, get_readable_time(uptime)),
-            reply_markup=InlineKeyboardMarkup(out),
-        )
     return await add_served_chat(message.chat.id)
 
 
-@app.on_message(filters.new_chat_members, group=-1)
+@app.on_message(filters.new_chat_members, group=3)
 async def welcome(client, message: Message):
     chat_id = message.chat.id
     if config.PRIVATE_BOT_MODE == str(True):
@@ -325,25 +327,12 @@ async def welcome(client, message: Message):
             language = await get_lang(message.chat.id)
             _ = get_string(language)
             if member.id == app.id:
-                chat_type = message.chat.type
-                if chat_type != ChatType.SUPERGROUP:
-                    await message.reply_text(_["start_5"])
-                    return await app.leave_chat(message.chat.id)
-                if chat_id in await blacklisted_chats():
-                    await message.reply_text(
-                        _["start_6"].format(
-                            f"https://t.me/{app.username}?start=sudolist"
-                        )
-                    )
-                    return await app.leave_chat(chat_id)
+                photo_file = await app.download_media(message.chat.photo.big_file_id)
                 userbot = await get_assistant(message.chat.id)
                 out = start_pannel(_)
-                await message.reply_text(
-                    _["start_2"].format(
-                        app.mention,
-                        userbot.username,
-                        userbot.id,
-                    ),
+                await message.reply_photo(
+                    photo=photo_file,
+                    caption=_["start_2"],
                     reply_markup=InlineKeyboardMarkup(out),
                 )
             if member.id in config.OWNER_ID:
@@ -358,6 +347,7 @@ async def welcome(client, message: Message):
         except:
 
             return
+
 
 
 __MODULE__ = "Boᴛ"
