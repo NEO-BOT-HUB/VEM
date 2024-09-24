@@ -11,13 +11,12 @@ import asyncio
 import time
 
 from pyrogram import filters
-from pyrogram.enums import ChatType, ParseMode
+from pyrogram.enums import ParseMode
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from youtubesearchpython.__future__ import VideosSearch
 
 import config
 from config import BANNED_USERS, START_IMG_URL
-from config.config import OWNER_ID
 from strings import get_string
 from DnsXMusic import HELPABLE, Telegram, YouTube, app
 from DnsXMusic.misc import SUDOERS, _boot_
@@ -26,10 +25,10 @@ from DnsXMusic.plugins.sudo.sudoers import sudoers_list
 from DnsXMusic.utils.database import (
     add_served_chat,
     add_served_user,
-    blacklisted_chats,
     get_assistant,
     get_lang,
     get_userss,
+    is_banned_user,
     is_on_off,
     is_served_private_chat,
 )
@@ -38,13 +37,10 @@ from DnsXMusic.utils.formatters import get_readable_time
 from DnsXMusic.utils.functions import MARKDOWN, WELCOMEHELP
 from DnsXMusic.utils.inline import alive_panel, private_panel, start_pannel
 
-from.help import paginate_modules
+from .help import paginate_modules
 
 loop = asyncio.get_running_loop()
 
-async def is_banned_user(user_id):
-    # your logic to check if the user is banned
-    pass
 
 @app.on_message(group=-1)
 async def ban_new(client, message):
@@ -227,70 +223,68 @@ async def start_comm(client, message: Message, _):
                     f"{message.from_user.mention} ʜᴀs ᴊᴜsᴛ sᴛᴀʀᴛᴇᴅ ʙᴏᴛ ᴛᴏ ᴄʜᴇᴄᴋ<code> ᴠɪᴅᴇᴏ ɪɴғᴏʀᴍᴀᴛɪᴏɴ </code>\n\n**ᴜsᴇʀ ɪᴅ:** {sender_id}\n**ᴜsᴇʀ ɴᴀᴍᴇ** {sender_name}",
                 )
     else:
-        out = private_panel(_, BOT_USERNAME)
-        dns = await message.reply_text(
-            f"**𝐖𝐞𝐥𝐜𝐨𝐦𝐞 𝐁𝐚𝐛𝐲 ꨄ︎ {message.from_user.mention}**"
-        )
-        await dns.edit_text(f"**𝐖𝐞𝐥𝐜𝐨𝐦𝐞 𝐁𝐚𝐛𝐲 ꨄ︎ {message.from_user.mention}  ❣️**")
-        await dns.edit_text(f"**𝐖𝐞𝐥𝐜𝐨𝐦𝐞 𝐁𝐚𝐛𝐲 ꨄ︎ {message.from_user.mention}  🐥**")
-        await dns.edit_text(f"**𝐖𝐞𝐥𝐜𝐨𝐦𝐞 𝐁𝐚𝐛𝐲 ꨄ︎ {message.from_user.mention}  ✨**")
-        await dns.edit_text(f"**𝐖𝐞𝐥𝐜𝐨𝐦𝐞 𝐁𝐚𝐛𝐲 ꨄ︎ {message.from_user.mention}  😻**")
-        await dns.edit_text(f"**𝐖𝐞𝐥𝐜𝐨𝐦𝐞 𝐁𝐚𝐛𝐲 ꨄ︎ {message.from_user.mention}  🎉**")
+        out = private_panel(_)
+        dns = await message.reply_text(f"**ᴅιиg ᴅσиg ꨄ︎❣️.....**")
+        await dns.edit_text(f"**ᴅιиg ᴅσиg ꨄ︎.❣️....**")
+        await dns.edit_text(f"**ᴅιиg ᴅσиg ꨄ︎..❣️...**")
+        await dns.edit_text(f"**ᴅιиg ᴅσиg ꨄ︎...❣️..**")
+        await dns.edit_text(f"**ᴅιиg ᴅσиg ꨄ︎....❣️.**")
+        await dns.edit_text(f"**ᴅιиg ᴅσиg ꨄ︎.....❣️**")
 
         await dns.delete()
-        dnss = await message.reply_text("**⚡s**")
-        await asyncio.sleep(0.2)
-        await dnss.edit_text("**⚡sᴛ**")
-        await asyncio.sleep(0.2)
-        await dnss.edit_text("**⚡sᴛᴀ**")
-        await asyncio.sleep(0.2)
-        await dnss.edit_text("**⚡sᴛᴀʀ**")
-        await asyncio.sleep(0.2)
-        await dnss.edit_text("**⚡sᴛᴀʀᴛ**")
-        await asyncio.sleep(0.2)
-        await dnss.edit_text("**⚡sᴛᴀʀᴛɪɴ**")
-        await asyncio.sleep(0.2)
-        await dnss.edit_text("**⚡sᴛᴀʀᴛɪɴɢ.**")
-        await asyncio.sleep(0.2)
-        await dnss.edit_text("**⚡sᴛᴀʀᴛɪɴɢ..**")
-        await asyncio.sleep(0.2)
-        await dnss.edit_text("**⚡sᴛᴀʀᴛɪɴɢ...**")
+        dnss = await message.reply_text("**⚡ѕ**")
         await asyncio.sleep(0.1)
-        await dnss.edit_text("**⚡sᴛᴀʀᴛɪɴɢ.**")
+        await dnss.edit_text("**⚡ѕт**")
         await asyncio.sleep(0.1)
-        await dnss.edit_text("**⚡sᴛᴀʀᴛɪɴɢ....**")
+        await dnss.edit_text("**⚡ѕтα**")
         await asyncio.sleep(0.1)
+        await dnss.edit_text("**⚡ѕтαя**")
+        await asyncio.sleep(0.1)
+        await dnss.edit_text("**⚡ѕтαят**")
+        await asyncio.sleep(0.1)
+        await dnss.edit_text("**⚡ѕтαятι**")
+        await asyncio.sleep(0.1)
+        await dnss.edit_text("**⚡ѕтαятιиg.**")
+        await asyncio.sleep(0.1)
+        await dnss.edit_text("**⚡ѕтαятιиg..**")
+        await asyncio.sleep(0.1)
+        await dnss.edit_text("**⚡ѕтαятιиg...**")
+
+        await dnss.edit_text("**⚡ѕтαятιиg.**")
+
+        await dnss.edit_text("**⚡ѕтαятιиg....**")
         photo_file = await app.download_media(message.from_user.photo.big_file_id)
         await dnss.delete()
-        done = await message.reply_text("💻")
-        await asyncio.sleep(0.5)
-        await done.delete()
+
         if photo_file:
-            await message.reply_photo(
-                photo=photo_file,
-                caption=_["start_2"].format(message.from_user.mention, app.mention),
-                reply_markup=InlineKeyboardMarkup(out),
-            )
-            if await is_on_off(config.LOG):
-                sender_id = message.from_user.id
-                sender_name = message.from_user.first_name
-                return await app.send_message(
-                    config.LOG_GROUP_ID,
-                    f"{message.from_user.mention} ʜᴀs sᴛᴀʀᴛᴇᴅ ʙᴏᴛ. \n\n**ᴜsᴇʀ ɪᴅ :** {sender_id}\n**ᴜsᴇʀ ɴᴀᴍᴇ:** {sender_name}",
+            try:
+                await message.reply_photo(
+                    photo=photo_file,
+                    caption=_["start_2"].format(message.from_user.mention, app.mention),
+                    reply_markup=InlineKeyboardMarkup(out),
                 )
-        else:
-            await message.reply_photo(
-                photo=config.START_IMG_URL,
-                caption=_["start_2"].format(message.from_user.mention, app.mention),
-                reply_markup=InlineKeyboardMarkup(out),
-            )
-            if await is_on_off(config.LOG):
-                sender_id = message.from_user.id
-                sender_name = message.from_user.first_name
-                return await app.send_message(
-                    config.LOG_GROUP_ID,
-                    f"{message.from_user.mention} ʜᴀs sᴛᴀʀᴛᴇᴅ ʙᴏᴛ. \n\n**ᴜsᴇʀ ɪᴅ :** {sender_id}\n**ᴜsᴇʀ ɴᴀᴍᴇ:** {sender_name}",
+                if await is_on_off(config.LOG):
+                    sender_id = message.from_user.id
+                    sender_name = message.from_user.first_name
+                    return await app.send_message(
+                        config.LOG_GROUP_ID,
+                        f"{message.from_user.mention} ʜᴀs sᴛᴀʀᴛᴇᴅ ʙᴏᴛ. \n\n**ᴜsᴇʀ ɪᴅ :** {sender_id}\n**ᴜsᴇʀ ɴᴀᴍᴇ:** {sender_name}",
+                    )
+            except Exception as e:
+
+                await message.reply_photo(
+                    photo=config.START_IMG_URL,
+                    caption=_["start_2"].format(message.from_user.mention, app.mention),
+                    reply_markup=InlineKeyboardMarkup(out),
                 )
+                if await is_on_off(config.LOG):
+                    sender_id = message.from_user.id
+                    sender_name = message.from_user.first_name
+                    return await app.send_message(
+                        config.LOG_GROUP_ID,
+                        f"{message.from_user.mention} ʜᴀs sᴛᴀʀᴛᴇᴅ ʙᴏᴛ. \n\n**ᴜsᴇʀ ɪᴅ :** {sender_id}\n**ᴜsᴇʀ ɴᴀᴍᴇ:** {sender_name}",
+                    )
+
 
 @app.on_message(filters.command(["start"]) & filters.group & ~BANNED_USERS)
 @LanguageStart
@@ -320,7 +314,7 @@ async def welcome(client, message: Message):
     if config.PRIVATE_BOT_MODE == str(True):
         if not await is_served_private_chat(message.chat.id):
             await message.reply_text(
-                "**ᴛʜɪs ʙᴏᴛ's ᴘʀɪᴠᴀᴛᴇ ᴍᴏᴅᴇ ʜᴀs ʙᴇᴇɴ ᴇɴᴀʙʟᴇᴅ ᴏɴʟʏ ᴍʏ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ɪғ ᴡᴀɴᴛ ᴛᴏ ᴜsᴇ ᴛʜɪs ɪɴ ʏᴏᴜʀ ᴄʜᴀᴛ sᴏ sᴀʏ ᴛᴏ ᴍʏ ᴏᴡɴᴇʀ ᴛᴏ ᴀᴜᴛʜᴏʀɪᴢᴇ**"
+                "**ᴛʜɪs ʙᴏᴛ's ᴘʀɪᴠᴀᴛᴇ ᴍᴏᴅᴇ ʜᴀs ʙᴇᴇɴ ᴇɴᴀʙʟᴇᴅ ᴏɴʟʏ ᴍʏ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜsᴇ ᴛʜɪs ɪғ ᴡᴀɴᴛ ᴛᴏ ᴜsᴇ ᴛʜɪs ɪɴ ʏᴏᴜʀ ᴄʜᴀᴛ sᴏ sᴀʏ ᴛᴏ ᴍʏ ᴏᴡɴᴇʀ ᴛᴏ ᴀᴜᴛʜᴏʀɪᴢᴇ ʏᴏᴜʀ ᴄʜᴀᴛ."
             )
             return await app.leave_chat(message.chat.id)
     else:
@@ -350,8 +344,6 @@ async def welcome(client, message: Message):
         except:
 
             return
-
-
 
 __MODULE__ = "Boᴛ"
 __HELP__ = f"""
