@@ -16,7 +16,7 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from youtubesearchpython.__future__ import VideosSearch
 
 import config
-from config import BANNED_USERS, START_IMG_URL, BOT_USERNAME
+from config import BANNED_USERS, START_IMG_URL
 from config.config import OWNER_ID
 from strings import get_string
 from DnsXMusic import HELPABLE, Telegram, YouTube, app
