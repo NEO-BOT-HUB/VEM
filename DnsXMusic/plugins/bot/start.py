@@ -18,7 +18,8 @@ from youtubesearchpython.__future__ import VideosSearch
 import config
 from config import BANNED_USERS, START_IMG_URL
 from strings import get_string
-from DnsXMusic import HELPABLE, Telegram, YouTube, app
+from DnsXMusic import HELPABLE, Telegram, YouTube
+from DnsXMusic import app
 from DnsXMusic.misc import SUDOERS, _boot_
 from DnsXMusic.plugins.play.playlist import del_plist_msg
 from DnsXMusic.plugins.sudo.sudoers import sudoers_list
