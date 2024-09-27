@@ -2,14 +2,14 @@ import requests
 from pyrogram import filters
 
 from DnsXMusic import app
-from SafoneAPI import SafoneAPI
+from MukeshAPI import api
 
 
-@app.on_message(filters.command(["bard", "uru", "ra"], prefixes=["/", "!", "%", ",", "-", ".", "@", "#", "d", "D", "e", "'E"]))
+@app.on_message(filters.command(["bard", "uru", "ra"], prefixes=["/", "!", ".", "d", "D", "e", "'E"]))
 async def bard(bot, message):
     if len(message.command) < 2 and not message.reply_to_message:
         await message.reply_text(
-            "Example:\n\n`/bard tell me about lord rama and sita in brief `"
+            "Example:\n\n`/era tell me about lord rama and sita in brief `"
         )
         return
 
