@@ -12,7 +12,6 @@ from DnsXMusic import app
 is_quiz_on = False
 active_poll_message = None
 quiz_scores = {}
-last_command_time = {}
 
 # Start/Stop Quiz command with multiple prefixes
 @app.on_message(filters.command(["quiz"], prefixes=["/", "!", ".", "Q", "q"]))
@@ -123,23 +122,23 @@ async def show_ranks(client, callback_query):
     await callback_query.message.edit_text(f"{text}\n\n{rank_list}")
 
 # Handle poll answers to update scores
-@app.on_message(filters.poll_answer)
+@app.on_message(filters.text)
 async def handle_poll_answer(client, message):
-    user_id = message.poll_answer.user.id
-    poll_id = message.poll_answer.poll_id
+    if message.poll_answer:
+        user_id = message.poll_answer.user.id
+        user_answer_id = message.poll_answer.option_ids[0]
 
-    correct_answer_id = active_poll_message.poll.correct_option_id
-    user_answer_id = message.poll_answer.option_ids[0]
+        correct_answer_id = active_poll_message.poll.correct_option_id
 
-    if user_answer_id == correct_answer_id:
-        now = datetime.now()
-        if user_id in quiz_scores:
-            _, current_score = quiz_scores[user_id]
-            quiz_scores[user_id] = (now, current_score + 1)
-        else:
-            quiz_scores[user_id] = (now, 1)
+        if user_answer_id == correct_answer_id:
+            now = datetime.now()
+            if user_id in quiz_scores:
+                _, current_score = quiz_scores[user_id]
+                quiz_scores[user_id] = (now, current_score + 1)
+            else:
+                quiz_scores[user_id] = (now, 1)
 
-    await message.reply_text(f"You answered correctly! Your current score is: {quiz_scores[user_id][1]}")
+            await message.reply_text(f"You answered correctly! Your current score is: {quiz_scores[user_id][1]}")
 
 if __name__ == "__main__":
     app.run()
