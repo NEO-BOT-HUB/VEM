@@ -1,6 +1,9 @@
-from DnsXMusic import app
+
 import random
 import time
+from DnsXMusic import app
+from pyrogram import filters  
+
 
 # Reactions list 
 reactions = [
@@ -24,10 +27,10 @@ def toggle_reaction(client, message):
     global is_reaction_on
     command_parts = message.text.split()
     if len(command_parts) == 2:
-        if command_parts[1] == "on":
+        if command_parts[1].lower() == "on":
             is_reaction_on = True
             message.reply_text("Reaction spam is now ON! 😈")
-        elif command_parts[1] == "off":
+        elif command_parts[1].lower() == "off":
             is_reaction_on = False
             message.reply_text("Reaction spam is now OFF! 😌")
         else:
@@ -35,11 +38,10 @@ def toggle_reaction(client, message):
     else:
         message.reply_text("Invalid command. Use /reaction on or /reaction off")
 
-
 @app.on_message()
-def auto_react(_, message):
+def auto_react(client, message):
     global is_reaction_on
     if is_reaction_on:
         reaction = random.choice(reactions)
         time.sleep(0.5) 
-        app.send_reaction(message.chat.id, message.message_id, reaction)
+        message.react(reaction)  # Changed this line to use message.react()
