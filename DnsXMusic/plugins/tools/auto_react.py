@@ -18,6 +18,11 @@ reactions = [
     '🐬', '🐟', '🐠', '🐡', '🦈', '🐙', '🐚', '🐌', '🐞', '🐜', '🦋', '🐝', '🐧', '🦗', '🕷', '🕸', '🦕', '🦖',
     '🦎', '🐢', '🐍', '🦂', '🦟', '🦠', '🐲', '🐉', '🦜', '🐳', '🐋', '🐬'
 ]
+
+
+# Global variable to track reaction status (default off)
+is_reaction_on = False  # Make sure this is defined globally
+
 @app.on_message(filters.command(["reaction", "react", "eaction", "eact"], prefixes=["/", "!", ".", "R", "r"]))
 async def toggle_reaction(client, message):
     global is_reaction_on
@@ -41,8 +46,6 @@ async def auto_react(client, message):
         reaction = random.choice(reactions)
         try:
             await message.react(reaction)
-        except pyrogram.errors.exceptions.FloodControl as e:
-            print(f"Flood control error: {e}")
-            await asyncio.sleep(e.x)  # Wait for the specified flood wait time
+            await asyncio.sleep(0.1)  # Small delay to avoid overwhelming Telegram
         except Exception as e:
             print(f"An error occurred: {e}")
