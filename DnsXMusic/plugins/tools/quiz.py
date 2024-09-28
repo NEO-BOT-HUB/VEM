@@ -112,15 +112,23 @@ async def show_ranks(client, callback_query):
 
     await callback_query.message.edit_text(f"{text}\n\n{rank_list}")
 
-# Update quiz_scores when a quiz is solved
-@app.on_poll_answer()
-async def handle_poll_answer(client, poll_answer):
-    user_id = poll_answer.user.id
-    now = datetime.now()
+# Track quiz results
+@app.on_message(filters.poll)
+async def handle_poll(client, message):
+    if message.poll.is_closed:
+        return
+    
+    poll_answers = message.poll.options
 
-    if user_id in quiz_scores:
-        _, current_score = quiz_scores[user_id]
-        quiz_scores[user_id] = (now, current_score + 1)
-    else:
-        quiz_scores[user_id] = (now, 1)
+    # Track correct answers and update quiz scores
+    correct_answer_id = message.poll.correct_option_id
+    for answer in poll_answers:
+        if answer.voter_count > 0:
+            user_id = message.from_user.id
+            now = datetime.now()
 
+            if user_id in quiz_scores:
+                _, current_score = quiz_scores[user_id]
+                quiz_scores[user_id] = (now, current_score + 1)
+            else:
+                quiz_scores[user_id] = (now, 1)
