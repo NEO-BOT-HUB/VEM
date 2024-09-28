@@ -43,5 +43,5 @@ def auto_react(client, message):
     global is_reaction_on
     if is_reaction_on:
         reaction = random.choice(reactions)
-        time.sleep(0.5) 
+        time.sleep(None) 
         message.react(reaction)  # Changed this line to use message.react()
