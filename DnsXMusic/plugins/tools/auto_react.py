@@ -43,9 +43,11 @@ async def toggle_reaction(client, message):
 async def auto_react(client, message):
     global is_reaction_on
     if is_reaction_on:
-        reaction = random.choice(reactions)
-        try:
-            await message.react(reaction)
-            await asyncio.sleep(0.05)  # Small delay to avoid overwhelming Telegram
-        except Exception as e:
-            print(f"An error occurred: {e}")
+        # Check the type of the message and react accordingly
+        if message.text or message.sticker or message.audio or message.voice or message.video or message.document or message.animation:
+            reaction = random.choice(reactions)
+            try:
+                await message.react(reaction)
+                await asyncio.sleep(0.01)  # Small delay to avoid rate limiting
+            except Exception as e:
+                print(f"An error occurred: {e}")
