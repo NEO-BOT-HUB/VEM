@@ -46,6 +46,6 @@ async def auto_react(client, message):
         reaction = random.choice(reactions)
         try:
             await message.react(reaction)
-            await asyncio.sleep(0.1)  # Small delay to avoid overwhelming Telegram
+            await asyncio.sleep(0.05)  # Small delay to avoid overwhelming Telegram
         except Exception as e:
             print(f"An error occurred: {e}")
