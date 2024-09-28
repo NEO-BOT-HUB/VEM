@@ -1,6 +1,6 @@
 
 import random
-import time
+import asyncio
 from DnsXMusic import app
 from pyrogram import filters  
 
@@ -18,30 +18,31 @@ reactions = [
     '🐬', '🐟', '🐠', '🐡', '🦈', '🐙', '🐚', '🐌', '🐞', '🐜', '🦋', '🐝', '🐧', '🦗', '🕷', '🕸', '🦕', '🦖',
     '🦎', '🐢', '🐍', '🦂', '🦟', '🦠', '🐲', '🐉', '🦜', '🐳', '🐋', '🐬'
 ]
-
-# Global variable to track reaction status (default off)
-is_reaction_on = False
-
 @app.on_message(filters.command(["reaction", "react", "eaction", "eact"], prefixes=["/", "!", ".", "R", "r"]))
-def toggle_reaction(client, message):
+async def toggle_reaction(client, message):
     global is_reaction_on
     command_parts = message.text.split()
     if len(command_parts) == 2:
         if command_parts[1].lower() == "on":
             is_reaction_on = True
-            message.reply_text("Reaction spam is now ON! 😈")
+            await message.reply_text("Reaction spam is now ON! 😈")
         elif command_parts[1].lower() == "off":
             is_reaction_on = False
-            message.reply_text("Reaction spam is now OFF! 😌")
+            await message.reply_text("Reaction spam is now OFF! 😌")
         else:
-            message.reply_text("Invalid command. Use /reaction on or /reaction off")
+            await message.reply_text("Invalid command. Use /reaction on or /reaction off")
     else:
-        message.reply_text("Invalid command. Use /reaction on or /reaction off")
+        await message.reply_text("Invalid command. Use /reaction on or /reaction off")
 
 @app.on_message()
-def auto_react(client, message):
+async def auto_react(client, message):
     global is_reaction_on
     if is_reaction_on:
         reaction = random.choice(reactions)
-        time.sleep(None) 
-        message.react(reaction)  # Changed this line to use message.react()
+        try:
+            await message.react(reaction)
+        except pyrogram.errors.exceptions.FloodControl as e:
+            print(f"Flood control error: {e}")
+            await asyncio.sleep(e.x)  # Wait for the specified flood wait time
+        except Exception as e:
+            print(f"An error occurred: {e}")
