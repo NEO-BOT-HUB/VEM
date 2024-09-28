@@ -5,7 +5,7 @@ from DnsXMusic import app
 from MukeshAPI import api
 
 
-@app.on_message(filters.command(["bard", "uru", "ra"], prefixes=["/", "!", ".", "d", "D", "e", "'E"]))
+@app.on_message(filters.command(["era" "ra"], prefixes=["/", "!", ".", "e", "'E"]))
 async def bard(bot, message):
     if len(message.command) < 2 and not message.reply_to_message:
         await message.reply_text(
@@ -19,7 +19,7 @@ async def bard(bot, message):
         user_input = " ".join(message.command[1:])
 
     try:
-        Z = await SafoneAPI().bard(user_input)
+        Z = await MukeshAPI().bard(user_input)
         result = Z["candidates"][0]["content"]["parts"][0]["text"]
         await message.reply_text(result)
     except requests.exceptions.RequestException as e:
