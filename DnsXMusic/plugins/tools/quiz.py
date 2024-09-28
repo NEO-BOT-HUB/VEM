@@ -14,10 +14,16 @@ active_poll_message = None
 quiz_scores = {}
 last_command_time = {}
 
+# Log function for debugging
+async def log_message(message):
+    print(f"[DEBUG] {message}")
+
 # Start/Stop Quiz command with multiple prefixes and command variations
 @app.on_message(filters.command(["quiz", "uiz"], prefixes=["/", "!", ".", "Q", "q"]))
 async def quiz(client, message):
     global is_quiz_on, active_poll_message
+    await log_message("Quiz command received.")
+
     user_id = message.from_user.id
     current_time = time.time()
 
@@ -30,6 +36,7 @@ async def quiz(client, message):
 
     # Start the quiz if "on" is passed
     if len(message.command) > 1 and message.command[1].lower() == "on":
+        await log_message("/quiz on command received.")
         if is_quiz_on:
             await message.reply_text("Quiz is already running!")
             return
@@ -41,9 +48,11 @@ async def quiz(client, message):
         categories = [9, 17, 18, 20, 21, 27]
         while is_quiz_on:
             await app.send_chat_action(message.chat.id, ChatAction.TYPING)
-            
+
             url = f"https://opentdb.com/api.php?amount=1&category={random.choice(categories)}&type=multiple"
+            await log_message("Sending request to OpenTDB.")
             response = requests.get(url).json()
+            await log_message(f"Received response: {response}")
 
             question_data = response["results"][0]
             question = question_data["question"]
@@ -63,34 +72,42 @@ async def quiz(client, message):
                 type=PollType.QUIZ,
                 correct_option_id=correct_option_id,
             )
+            await log_message("Poll sent successfully.")
 
             # Wait 10 minutes before deleting the poll and sending a new one
             await asyncio.sleep(600)
+            await log_message("10-minute sleep completed.")
 
             # Delete the poll if still active and quiz is on
             if is_quiz_on:
                 await app.delete_messages(message.chat.id, active_poll_message.message_id)
+                await log_message("Poll deleted.")
 
     # Stop the quiz if "off" is passed
     elif len(message.command) > 1 and message.command[1].lower() == "off":
+        await log_message("/quiz off command received.")
         if not is_quiz_on:
             await message.reply_text("Quiz is not running!")
             return
 
         is_quiz_on = False
         await message.reply_text("Quiz stopped.")
+        await log_message("Quiz stopped successfully.")
 
 # /new command for generating a new quiz immediately
 @app.on_message(filters.command(["new", "ew", "newquiz", "ewquiz"], prefixes=["/", "!", ".", "N", "n"]))
 async def new_quiz(client, message):
     global active_poll_message
+    await log_message("/new command received.")
     if active_poll_message:
         await app.delete_messages(message.chat.id, active_poll_message.message_id)
+        await log_message("Old poll deleted.")
         await quiz(client, message)
 
 # Ranks command with multiple variations and buttons for "Today", "Week", "Overall"
 @app.on_message(filters.command(["quizranks", "uziranks", "ranks"], prefixes=["/", "!", ".", "Q", "q"]))
 async def quiz_ranks(client, message):
+    await log_message("/quizranks command received.")
     buttons = [
         [
             InlineKeyboardButton("Tᴏᴅᴀʏ", callback_data="today"),
@@ -103,6 +120,7 @@ async def quiz_ranks(client, message):
 # Callback for handling the rank buttons
 @app.on_callback_query(filters.regex(r"(today|week|overall)"))
 async def show_ranks(client, callback_query):
+    await log_message(f"Rank button {callback_query.data} pressed.")
     period = callback_query.data
     now = datetime.now()
 
@@ -126,10 +144,12 @@ async def show_ranks(client, callback_query):
         rank_list = "No quizzes solved in this period."
 
     await callback_query.message.edit_text(f"{text}\n\n{rank_list}")
+    await log_message(f"Ranks displayed for {period}.")
 
 # Handle poll answers to update scores
 @app.on_message(filters.poll)
 async def handle_poll(client, message):
+    await log_message("Poll message received.")
     if message.poll.is_closed:
         return
 
@@ -147,3 +167,5 @@ async def handle_poll(client, message):
                 quiz_scores[user_id] = (now, current_score + 1)
             else:
                 quiz_scores[user_id] = (now, 1)
+
+    await log_message(f"Scores updated: {quiz_scores}")
