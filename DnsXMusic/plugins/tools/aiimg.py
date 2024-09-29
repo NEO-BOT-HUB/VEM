@@ -61,10 +61,10 @@ async def callback_query_handler(client, callback_query):
             prompt_text = f"𝐏𝐫𝐨𝐦𝐩𝐭: `{prompt}`\n"
             user_text = f"𝐑𝐞𝐪𝐮𝐢𝐫𝐞𝐝 𝐁𝐲: {callback_query.from_user.mention}\n"
             
-            caption = f"{model_text}\n{prompt_text}\n{user_text}"
+            caption = f"{model_text}{prompt_text}{user_text}"
             
-            # Send the generated image with the formatted caption using MarkdownV2
-            await client.send_photo(chat_id=callback_query.message.chat.id, photo=image_url, caption=caption, parse_mode="MarkdownV2")
+            # Send the generated image with the formatted caption without specifying parse mode
+            await client.send_photo(chat_id=callback_query.message.chat.id, photo=image_url, caption=caption)
         else:
             await callback_query.message.reply_text("No image found.")
     except Exception as e:
