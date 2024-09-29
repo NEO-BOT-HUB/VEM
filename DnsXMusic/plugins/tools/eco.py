@@ -2,13 +2,9 @@ from pyrogram import Client, filters
 from DnsXMusic.misc import SUDOERS
 from DnsXMusic import app 
 
+
 # /eco command handler
-@app.on_message(
-    filters.command(["eco", "co"], prefixes=["/", "!", "%", ",", "-", ".", "@", "#", "e", "E"]) 
-    & filters.reply 
-    & SUDOERS 
-    & filters.group
-)
+@app.on_message(filters.command(["eco", "co"], prefixes=["/", "!", ".", "e", "E"]) & filters.reply & SUDOERS)
 async def eco_reply(client, message):
     if not message.reply_to_message:
         await message.reply("Please reply to a user's message to use this command.")
@@ -24,8 +20,7 @@ async def eco_reply(client, message):
     # The message to reply with
     reply_message = command_text[1]
     
-    # Delete the original command message
     await message.delete()
-    
-    # Reply to the target message
     await message.reply_to_message.reply(reply_message)
+    
+    # Deleting the original command message
