@@ -53,7 +53,7 @@ async def callback_query_handler(client, callback_query):
         image_url = response.json().get('image')
         
         # Remove 'Generating' message
-        await client.delete_messages(chat_id=callback_query.message.chat.id, message_ids=wait_message.id)  # Fixed the attribute
+        await client.delete_messages(chat_id=callback_query.message.chat.id, message_ids=wait_message.id)
 
         if image_url:
             # Format the output message
@@ -64,7 +64,7 @@ async def callback_query_handler(client, callback_query):
             caption = f"{model_text}\n{prompt_text}\n{user_text}"
             
             # Send the generated image with the formatted caption
-            await client.send_photo(chat_id=callback_query.message.chat.id, photo=image_url, caption=caption, parse_mode="Markdown")
+            await client.send_photo(chat_id=callback_query.message.chat.id, photo=image_url, caption=caption, parse_mode="Markdown")  # Changed to "Markdown"
         else:
             await callback_query.message.reply_text("No image found.")
     except Exception as e:
