@@ -1,35 +1,28 @@
 import requests
-from MukeshAPI import api
-from pyrogram import filters
-from pyrogram.enums import ChatAction
+from pyrogram import Client, filters
 from DnsXMusic import app
 
+# API endpoint
+API_URL = "https://gemini.apiitzasuraa.workers.dev/?prompt="
 
-
+# Function to handle the /geminis command in private chat
 @app.on_message(filters.command(["era" "ra"], prefixes=["/", "!", ".", "e", "'E"]))
-async def gemini_handler(client, message):
-    await app.send_chat_action(message.chat.id, ChatAction.TYPING)
-    if (
-        message.text.startswith(f"/era@{app.username}")
-        and len(message.text.split(" ", 1)) > 1
-    ):
-        user_input = message.text.split(" ", 1)[1]
-    elif message.reply_to_message and message.reply_to_message.text:
-        user_input = message.reply_to_message.text
+async def gemini(client, message):
+    # Get the user message after the /geminis command
+    user_message = message.text[len("/geminis "):].strip()
+    
+    if not user_message:
+        await message.reply("Please provide a prompt after the /era command.")
+        return
+    
+    # Send the request to the API
+    response = requests.get(API_URL + user_message)
+    
+    if response.status_code == 200:
+        json_response = response.json()
+        bot_reply = json_response['candidates'][0]['content']['parts'][0]['text']
     else:
-        if len(message.command) > 1:
-            user_input = " ".join(message.command[1:])
-        else:
-            await message.reply_text("ᴇxᴀᴍᴘʟᴇ :- `/era who is lord ram`")
-            return
-
-    try:
-        response = api.gemini(user_input)
-        await app.send_chat_action(message.chat.id, ChatAction.TYPING)
-        x = response["results"]
-        if x:
-            await message.reply_text(x, quote=True)
-        else:
-            await message.reply_text("sᴏʀʀʏ sɪʀ! ᴘʟᴇᴀsᴇ Tʀʏ ᴀɢᴀɪɴ")
-    except requests.exceptions.RequestException as e:
-        pass
+        bot_reply = "Sorry, I couldn't get a response from the API."
+    
+    # Reply to the user with the bot's response
+    await message.reply_text(bot_reply)
