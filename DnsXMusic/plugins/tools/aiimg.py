@@ -53,7 +53,7 @@ async def callback_query_handler(client, callback_query):
         image_url = response.json().get('image')
         
         # Remove 'Generating' message
-        await client.delete_messages(chat_id=callback_query.message.chat.id, message_ids=wait_message.message_id)
+        await client.delete_messages(chat_id=callback_query.message.chat.id, message_ids=wait_message.id)  # Fixed the attribute
 
         if image_url:
             # Format the output message
@@ -69,4 +69,3 @@ async def callback_query_handler(client, callback_query):
             await callback_query.message.reply_text("No image found.")
     except Exception as e:
         await callback_query.message.reply_text(f"An error occurred: {e}")
-
