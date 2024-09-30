@@ -1,5 +1,5 @@
 import requests
-from DnsXMusic import app  # Importing app from DnsXMusic
+from DnsXMusic import app
 from pyrogram import filters
 
 # Function to call the GPT API
@@ -8,13 +8,23 @@ def call_gpt_api(question):
         # Send a request to the GPT API with the question
         response = requests.get(f"https://chatgpt.apiitzasuraa.workers.dev/?question={question}")
         
+        # Log the raw API response for debugging
+        print(f"API Response: {response.text}")
+        
         # Check if the request was successful
         if response.status_code == 200:
-            return response.json().get("response", "Sorry, I couldn't get a response.")
+            json_response = response.json()
+            
+            # Log the JSON response for debugging
+            print(f"JSON Response: {json_response}")
+            
+            # Return the response text or a message if not found
+            return json_response.get("response", "No 'response' field found in the API response.")
         else:
-            return f"Error {response.status_code}: Failed to get a response from the API."
+            return f"Error {response.status_code}: Failed to get a valid response from the API."
     
     except Exception as e:
+        # Return a more detailed error message
         return f"An error occurred: {str(e)}"
 
 # Handler for the bot commands
@@ -33,4 +43,3 @@ def gpt_response_handler(client, message):
     else:
         message.reply_text("Please provide a question after the command.")
 
-# You don't need to call app.run() since the app from DnsXMusic is already running in your project
