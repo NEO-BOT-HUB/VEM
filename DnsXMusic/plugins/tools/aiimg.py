@@ -17,7 +17,7 @@ def generate_buttons(prompt):
 
 @app.on_message(filters.command(["make", "ake"], prefixes=["/", "!", ".", "M", "m"]))
 async def handle_image_generation(client, message):
-    prompt = ' '.join(message.command[1:])
+    prompt = ' '.join(message.command[4:])
     if not prompt:
         await message.reply_text('ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴘʀᴏᴍᴘᴛ.')
         return
