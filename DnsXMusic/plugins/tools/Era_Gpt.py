@@ -3,7 +3,7 @@ from pyrogram import Client, filters
 from DnsXMusic import app
 
 # API endpoint
-API_URL = "https://gemini.apiitzasuraa.workers.dev/?prompt="
+API_URL = "https://chatgpt.apiitzasuraa.workers.dev/?question=hey"
 
 # Function to handle the /geminis command in private chat
 @app.on_message(filters.command(["era" "ra"], prefixes=["/", "!", ".", "e", "'E"]))
