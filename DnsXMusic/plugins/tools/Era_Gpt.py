@@ -9,7 +9,7 @@ API_URL = "https://chatgpt.apiitzasuraa.workers.dev/?question=hey"
 @app.on_message(filters.command(["era" "ra"], prefixes=["/", "!", ".", "e", "'E"]))
 async def gemini(client, message):
     # Get the user message after the /geminis command
-    user_message = message.text[len("/era "):].strip()
+    user_message = message.text[len("/era"):].strip()
     
     if not user_message:
         await message.reply("Please provide a prompt after the /era command.")
