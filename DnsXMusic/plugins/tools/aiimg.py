@@ -14,7 +14,7 @@ def generate_buttons(prompt):
     )
     return buttons
 
-# Function to generate 4 images
+# Function to generate 4 images with updated prompts for the VR style
 def get_images(api_url, count=4):
     images = []
     for _ in range(count):
@@ -25,10 +25,10 @@ def get_images(api_url, count=4):
             images.append(image_url)
     return images
 
-# Function to create "Regenerate" button
+# Function to create "🔄️ Rᴇɢᴇɴᴇʀᴀᴛᴇ 🔄️" button
 def regenerate_button(model, prompt):
     buttons = InlineKeyboardMarkup(
-        [[InlineKeyboardButton("🔄️ Regenerate", callback_data=f"regenerate:{model}:{prompt}")]]
+        [[InlineKeyboardButton("🔄️ Rᴇɢᴇɴᴇʀᴀᴛᴇ 🔄️", callback_data=f"regenerate:{model}:{prompt}")]]
     )
     return buttons
 
@@ -98,4 +98,3 @@ async def callback_query_handler(client, callback_query):
             await callback_query.message.reply_text("No image found.")
     except Exception as e:
         await callback_query.message.reply_text(f"An error occurred: {e}")
-
