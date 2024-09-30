@@ -1,10 +1,11 @@
 import requests
-import urllib.parse  # For URL encoding
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from PIL import Image
+from io import BytesIO
 from DnsXMusic import app
 
-# Function to create buttons
+# Function to generate buttons for model selection
 def generate_buttons(prompt):
     buttons = InlineKeyboardMarkup(
         [
@@ -15,12 +16,44 @@ def generate_buttons(prompt):
     )
     return buttons
 
-# Function to handle prompt length and encoding
-def process_prompt(prompt):
-    # Ensure prompt is URL encoded
-    encoded_prompt = urllib.parse.quote_plus(prompt)  # URL encode the prompt
-    return encoded_prompt
+# Function to get images from the API and combine them into a 2x2 collage
+def get_and_combine_images(api_url, count=4):
+    images = []
+    for _ in range(count):
+        response = requests.get(api_url)
+        response.raise_for_status()
+        image_url = response.json().get('image')
+        if image_url:
+            img_response = requests.get(image_url)
+            img = Image.open(BytesIO(img_response.content))
+            images.append(img)
+    
+    # Create a 2x2 grid collage if we have 4 images
+    if len(images) == 4:
+        widths, heights = zip(*(img.size for img in images))
+        max_width = max(widths) * 2
+        total_height = max(heights) * 2
 
+        collage = Image.new('RGB', (max_width, total_height))
+
+        # Paste the images in a 2x2 grid
+        collage.paste(images[0], (0, 0))
+        collage.paste(images[1], (max_width // 2, 0))
+        collage.paste(images[2], (0, total_height // 2))
+        collage.paste(images[3], (max_width // 2, total_height // 2))
+
+        return collage
+    else:
+        return None
+
+# Function to create "🔄️ Rᴇɢᴇɴᴇʀᴀᴛᴇ 🔄️" button
+def regenerate_button(model, prompt):
+    buttons = InlineKeyboardMarkup(
+        [[InlineKeyboardButton("🔄️ Rᴇɢᴇɴᴇʀᴀᴛᴇ 🔄️", callback_data=f"regenerate:{model}:{prompt}")]]
+    )
+    return buttons
+
+# Command handler for image generation
 @app.on_message(filters.command(["make", "ake"], prefixes=["/", "!", ".", "M", "m"]))
 async def handle_image_generation(client, message):
     prompt = ' '.join(message.command[1:])
@@ -30,64 +63,61 @@ async def handle_image_generation(client, message):
     buttons = generate_buttons(prompt)
     await message.reply_text("Please select an image style:", reply_markup=buttons)
 
-# Handle callback queries when a button is pressed
+# Callback handler for button presses
 @app.on_callback_query()
 async def callback_query_handler(client, callback_query):
     data = callback_query.data
-    filter_type, prompt = data.split(":")
+    parts = data.split(":")
     
-    # Process prompt (handle long or complex prompts)
-    processed_prompt = process_prompt(prompt)
-
-    # Remove the buttons and show 'Image Generating' message
+    if len(parts) == 2:  # For the first image generation buttons
+        filter_type, prompt = parts
+    elif len(parts) == 3:  # For the regenerate button
+        _, filter_type, prompt = parts
+    
+    # Display a waiting message
     wait_message = await callback_query.message.edit_text("Iᴍᴀɢᴇ Is Gᴇɴᴇʀᴀᴛɪɴɢ Pʟᴇᴀsᴇ Wᴀɪᴛ......")
     
-    # Number of images to generate
-    num_images = 4
-    
-    # List to hold image URLs
-    image_urls = []
-    
-    # Determine API URL based on button pressed
+    # Determine the API URL based on the model selected
     if filter_type == "anime":
-        api_url = f"https://animeimg.apiitzasuraa.workers.dev/?prompt={processed_prompt}"
+        api_url = f"https://animeimg.apiitzasuraa.workers.dev/?prompt={prompt}"
         model_name = "Aɴɪᴍᴇ"
     elif filter_type == "3d":
-        api_url = f"https://disneyimg.apiitzasuraa.workers.dev/?prompt={processed_prompt}"
+        api_url = f"https://3d-image.apiitzasuraa.workers.dev/?prompt={prompt}"
         model_name = "𝟹D Rᴇɴᴅᴇʀ"
     elif filter_type == "realcartoon":
-        api_url = f"https://magicimg.apiitzasuraa.workers.dev/?prompt={processed_prompt}"
+        api_url = f"https://magicimg.apiitzasuraa.workers.dev/?prompt={prompt}"
         model_name = "RᴇᴀʟCᴀʀᴛᴏᴏɴ𝟹D"
     else:
         await callback_query.message.reply_text("Invalid option selected.")
         return
     
     try:
-        # Send request to the API to generate images
-        for _ in range(num_images):
-            response = requests.get(api_url)
-            response.raise_for_status()
-            image_url = response.json().get('image')
-            if image_url:
-                image_urls.append(image_url)
-            else:
-                await callback_query.message.reply_text("No image found.")
-                return
+        # Generate the 4-image collage
+        collage = get_and_combine_images(api_url, count=4)
         
-        # Remove 'Generating' message
+        # Remove the 'Generating' message
         await client.delete_messages(chat_id=callback_query.message.chat.id, message_ids=wait_message.id)
 
-        if image_urls:
-            # Format the output message
+        if collage:
+            # Save the collage in memory and send it
+            collage_bytes = BytesIO()
+            collage.save(collage_bytes, format="PNG")
+            collage_bytes.seek(0)
+            
+            await client.send_photo(chat_id=callback_query.message.chat.id, photo=collage_bytes)
+
+            # Add regenerate button
+            regenerate_markup = regenerate_button(filter_type, prompt)
+            
+            # Send details and regenerate button
             model_text = f"𝐌𝐨𝐝𝐞𝐥: {model_name}\n"
             prompt_text = f"𝐏𝐫𝐨𝐦𝐩𝐭: `{prompt}`\n"
             user_text = f"𝐑𝐞𝐪𝐮𝐢𝐫𝐞𝐝 𝐁𝐲: {callback_query.from_user.mention}\n"
             
-            # Send each generated image back to the user
-            for image_url in image_urls:
-                caption = f"{model_text}{prompt_text}{user_text}"
-                await client.send_photo(chat_id=callback_query.message.chat.id, photo=image_url, caption=caption)
+            caption = f"{model_text}{prompt_text}{user_text}"
+            
+            await callback_query.message.reply_text(caption, reply_markup=regenerate_markup)
         else:
-            await callback_query.message.reply_text("No images found.")
+            await callback_query.message.reply_text("No image found.")
     except Exception as e:
         await callback_query.message.reply_text(f"An error occurred: {e}")
