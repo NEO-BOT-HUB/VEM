@@ -8,23 +8,24 @@ def call_gpt_api(question):
         # Send a request to the GPT API with the question
         response = requests.get(f"https://chatgpt.apiitzasuraa.workers.dev/?question={question}")
         
-        # Log the raw API response for debugging
-        print(f"API Response: {response.text}")
-        
         # Check if the request was successful
         if response.status_code == 200:
             json_response = response.json()
-            
-            # Log the JSON response for debugging
-            print(f"JSON Response: {json_response}")
-            
-            # Return the response text or a message if not found
-            return json_response.get("response", "No 'response' field found in the API response.")
+
+            # Log only the essential info
+            if "response" in json_response:
+                print(f"GPT Response: {json_response['response']}")
+                return json_response['response']
+            else:
+                print(f"Unexpected JSON structure: {json_response}")
+                return "No valid response field found in the API result."
         else:
-            return f"Error {response.status_code}: Failed to get a valid response from the API."
+            print(f"Error {response.status_code}: Failed to get a valid response from the API.")
+            return f"Error {response.status_code}: API returned an error."
     
     except Exception as e:
-        # Return a more detailed error message
+        # Log a clean error message
+        print(f"Exception occurred: {str(e)}")
         return f"An error occurred: {str(e)}"
 
 # Handler for the bot commands
