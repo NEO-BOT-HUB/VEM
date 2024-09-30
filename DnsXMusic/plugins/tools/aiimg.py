@@ -68,41 +68,28 @@ async def handle_image_generation(client, message):
 async def callback_query_handler(client, callback_query):
     data = callback_query.data
     parts = data.split(":")
-
-    # Initialize filter_type and prompt variables
-    filter_type = None
-    prompt = None
     
     if len(parts) == 2:  # For the first image generation buttons
         filter_type, prompt = parts
     elif len(parts) == 3:  # For the regenerate button
         _, filter_type, prompt = parts
-    else:
-        await callback_query.message.reply_text("Invalid data format.")
-        return
     
-    # Ensure filter_type is assigned
-    if not filter_type or not prompt:
-        await callback_query.message.reply_text("An error occurred: Invalid filter type or prompt.")
-        return
-
     # Display a waiting message
     wait_message = await callback_query.message.edit_text("Iᴍᴀɢᴇ Is Gᴇɴᴇʀᴀᴛɪɴɢ Pʟᴇᴀsᴇ Wᴀɪᴛ......")
     
     # Determine the API URL based on the model selected
-    try:
-        if filter_type == "anime":
-            api_url = f"https://animeimg.apiitzasuraa.workers.dev/?prompt={prompt}"
-            model_name = "Aɴɪᴍᴇ"
-        elif filter_type == "3d":
-            api_url = f"https://3d-image.apiitzasuraa.workers.dev/?prompt={prompt}"
-            model_name = "𝟹D Rᴇɴᴅᴇʀ"
-        elif filter_type == "realcartoon":
-            api_url = f"https://magicimg.apiitzasuraa.workers.dev/?prompt={prompt}"
-            model_name = "RᴇᴀʟCᴀʀᴛᴏᴏɴ𝟹D"
-        else:
-            await callback_query.message.reply_text("Invalid option selected.")
-            return
+    if filter_type == "anime":
+        api_url = f"https://animeimg.apiitzasuraa.workers.dev/?prompt={prompt}"
+        model_name = "Aɴɪᴍᴇ"
+    elif filter_type == "3d":
+        api_url = f"https://3d-image.apiitzasuraa.workers.dev/?prompt={prompt}"
+        model_name = "𝟹D Rᴇɴᴅᴇʀ"
+    elif filter_type == "realcartoon":
+        api_url = f"https://magicimg.apiitzasuraa.workers.dev/?prompt={prompt}"
+        model_name = "RᴇᴀʟCᴀʀᴛᴏᴏɴ𝟹D"
+    else:
+        await callback_query.message.reply_text("Invalid option selected.")
+        return
     
     try:
         # Generate the 4-image collage
