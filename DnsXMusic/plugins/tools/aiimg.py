@@ -72,7 +72,7 @@ async def callback_query_handler(client, callback_query):
         api_url = f"https://3d-image.apiitzasuraa.workers.dev/?prompt={prompt}"
         model_name = "𝟹D Rᴇɴᴅᴇʀ"
     elif filter_type == "realcartoon":
-        api_url = f"https://magicimg.apiitzasuraa.workers.dev/?prompt={prompt}"
+        api_url = f"https://realism-img.apiitzasuraa.workers.dev/?prompt={prompt}"  # Updated API
         model_name = "RᴇᴀʟCᴀʀᴛᴏᴏɴ𝟹D"
     elif filter_type == "disney":
         api_url = f"https://disney.apiitzasuraa.workers.dev/?prompt={prompt}"
