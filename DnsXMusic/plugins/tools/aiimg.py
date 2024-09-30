@@ -8,9 +8,14 @@ from DnsXMusic import app
 def generate_buttons(prompt):
     buttons = InlineKeyboardMarkup(
         [
-            [InlineKeyboardButton("Aɴɪᴍᴇ", callback_data=f"anime:{prompt}")],
-            [InlineKeyboardButton("𝟹D Rᴇɴᴅᴇʀ", callback_data=f"3d:{prompt}")],
-            [InlineKeyboardButton("RᴇᴀʟCᴀʀᴛᴏᴏɴ𝟹D", callback_data=f"realcartoon:{prompt}")]
+            [
+                InlineKeyboardButton("Aɴɪᴍᴇ", callback_data=f"anime:{prompt}"),
+                InlineKeyboardButton("𝟹D Rᴇɴᴅᴇʀ", callback_data=f"3d:{prompt}")
+            ],
+            [
+                InlineKeyboardButton("RᴇᴀʟCᴀʀᴛᴏᴏɴ𝟹D", callback_data=f"realcartoon:{prompt}"),
+                InlineKeyboardButton("Dɪsɴᴇʏ", callback_data=f"disney:{prompt}")
+            ]
         ]
     )
     return buttons
@@ -69,6 +74,9 @@ async def callback_query_handler(client, callback_query):
     elif filter_type == "realcartoon":
         api_url = f"https://magicimg.apiitzasuraa.workers.dev/?prompt={prompt}"
         model_name = "RᴇᴀʟCᴀʀᴛᴏᴏɴ𝟹D"
+    elif filter_type == "disney":
+        api_url = f"https://disney.apiitzasuraa.workers.dev/?prompt={prompt}"
+        model_name = "Dɪsɴᴇʏ"
     else:
         await callback_query.message.reply_text("Invalid option selected.")
         return
