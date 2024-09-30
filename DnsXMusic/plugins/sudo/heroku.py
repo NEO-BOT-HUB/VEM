@@ -338,6 +338,6 @@ async def restart_(_, message):
     except:
         pass
     await response.edit_text(
-        "» ʀᴇsᴛᴀʀᴛ ᴘʀᴏᴄᴇss sᴛᴀʀᴛᴇᴅ, ᴘʟᴇᴀsᴇ ᴡᴀɪᴛ ғᴏʀ ғᴇᴡ sᴇᴄᴏɴᴅs ᴜɴᴛɪʟ ᴛʜᴇ ʙᴏᴛ sᴛᴀʀᴛs..."
+        "» ʙᴀʙᴜ ᴛʜᴏᴅᴀ ᴡᴀɪᴛ ᴋᴀʀᴏ, ғʀᴇsʜ ʜᴏ ᴋᴀʀ ᴀᴛɪ ʜᴜ ᴀᴘɴᴀ ᴅʏᴀɴ ʀᴀᴋʜɴᴀ..."
     )
     os.system(f"kill -9 {os.getpid()} && python3 -m DnsXMusic")
