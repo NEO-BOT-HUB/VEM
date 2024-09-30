@@ -1,9 +1,11 @@
 import requests
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from PIL import Image
+from io import BytesIO
 from DnsXMusic import app
 
-# Function to create buttons for model selection
+# Function to generate buttons for model selection
 def generate_buttons(prompt):
     buttons = InlineKeyboardMarkup(
         [
@@ -14,16 +16,35 @@ def generate_buttons(prompt):
     )
     return buttons
 
-# Function to generate 4 images with updated prompts for the VR style
-def get_images(api_url, count=4):
+# Function to get images from the API and combine them into a 2x2 collage
+def get_and_combine_images(api_url, count=4):
     images = []
     for _ in range(count):
         response = requests.get(api_url)
         response.raise_for_status()
         image_url = response.json().get('image')
         if image_url:
-            images.append(image_url)
-    return images
+            img_response = requests.get(image_url)
+            img = Image.open(BytesIO(img_response.content))
+            images.append(img)
+    
+    # Create a 2x2 grid collage if we have 4 images
+    if len(images) == 4:
+        widths, heights = zip(*(img.size for img in images))
+        max_width = max(widths) * 2
+        total_height = max(heights) * 2
+
+        collage = Image.new('RGB', (max_width, total_height))
+
+        # Paste the images in a 2x2 grid
+        collage.paste(images[0], (0, 0))
+        collage.paste(images[1], (max_width // 2, 0))
+        collage.paste(images[2], (0, total_height // 2))
+        collage.paste(images[3], (max_width // 2, total_height // 2))
+
+        return collage
+    else:
+        return None
 
 # Function to create "🔄️ Rᴇɢᴇɴᴇʀᴀᴛᴇ 🔄️" button
 def regenerate_button(model, prompt):
@@ -71,28 +92,30 @@ async def callback_query_handler(client, callback_query):
         return
     
     try:
-        # Get 4 images from the selected API
-        images = get_images(api_url, count=4)
+        # Generate the 4-image collage
+        collage = get_and_combine_images(api_url, count=4)
         
         # Remove the 'Generating' message
         await client.delete_messages(chat_id=callback_query.message.chat.id, message_ids=wait_message.id)
 
-        if images:
-            # Send 4 images
-            for image_url in images:
-                await client.send_photo(chat_id=callback_query.message.chat.id, photo=image_url)
+        if collage:
+            # Save the collage in memory and send it
+            collage_bytes = BytesIO()
+            collage.save(collage_bytes, format="PNG")
+            collage_bytes.seek(0)
+            
+            await client.send_photo(chat_id=callback_query.message.chat.id, photo=collage_bytes)
 
             # Add regenerate button
             regenerate_markup = regenerate_button(filter_type, prompt)
             
-            # Send regenerate button with formatted details
+            # Send details and regenerate button
             model_text = f"𝐌𝐨𝐝𝐞𝐥: {model_name}\n"
             prompt_text = f"𝐏𝐫𝐨𝐦𝐩𝐭: `{prompt}`\n"
             user_text = f"𝐑𝐞𝐪𝐮𝐢𝐫𝐞𝐝 𝐁𝐲: {callback_query.from_user.mention}\n"
             
             caption = f"{model_text}{prompt_text}{user_text}"
             
-            # Send the caption and button
             await callback_query.message.reply_text(caption, reply_markup=regenerate_markup)
         else:
             await callback_query.message.reply_text("No image found.")
