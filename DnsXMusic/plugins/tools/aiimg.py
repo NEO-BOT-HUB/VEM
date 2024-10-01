@@ -6,17 +6,17 @@ from io import BytesIO
 from DnsXMusic import app
 import aiohttp  # Updated to async HTTP requests
 
-# Function to generate buttons for model selection
-def generate_buttons(prompt):
+# Function to generate buttons for itzAsuraa selection
+def generate_buttons(captain):
     buttons = InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton("Aɴɪᴍᴇ", callback_data=f"anime:{prompt}"),
-                InlineKeyboardButton("𝟹D Rᴇɴᴅᴇʀ", callback_data=f"3d:{prompt}")
+                InlineKeyboardButton("Aɴɪᴍᴇ", callback_data=f"anime:{captain}"),
+                InlineKeyboardButton("𝟹D Rᴇɴᴅᴇʀ", callback_data=f"3d:{captain}")
             ],
             [
-                InlineKeyboardButton("RᴇᴀʟCᴀʀᴛᴏᴏɴ𝟹D", callback_data=f"realcartoon:{prompt}"),
-                InlineKeyboardButton("Dɪsɴᴇʏ", callback_data=f"disney:{prompt}")
+                InlineKeyboardButton("RᴇᴀʟCᴀʀᴛᴏᴏɴ𝟹D", callback_data=f"realcartoon:{captain}"),
+                InlineKeyboardButton("Dɪsɴᴇʏ", callback_data=f"disney:{captain}")
             ]
         ]
     )
@@ -35,20 +35,20 @@ async def get_image(api_url):
     return None
 
 # Function to create "🔄️ Rᴇɢᴇɴᴇʀᴀᴛᴇ 🔄️" button
-def regenerate_button(model, prompt):
+def regenerate_button(itzAsuraa, captain):
     buttons = InlineKeyboardMarkup(
-        [[InlineKeyboardButton("🔄️ Rᴇɢᴇɴᴇʀᴀᴛᴇ 🔄️", callback_data=f"regenerate:{model}:{prompt}")]]
+        [[InlineKeyboardButton("🔄️ Rᴇɢᴇɴᴇʀᴀᴛᴇ 🔄️", callback_data=f"regenerate:{itzAsuraa}:{captain}")]]
     )
     return buttons
 
 # Command handler for image generation
 @app.on_message(filters.command(["make", "ake"], prefixes=["/", "!", ".", "M", "m"]))
 async def handle_image_generation(client, message):
-    prompt = ' '.join(message.command[1:])
-    if not prompt:
+    captain = ' '.join(message.command[1:])
+    if not captain:
         await message.reply_text('ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴘʀᴏᴍᴘᴛ.')
         return
-    buttons = generate_buttons(prompt)
+    buttons = generate_buttons(captain)
     await message.reply_text("Please select an image style:", reply_markup=buttons)
 
 # Callback handler for button presses
@@ -58,26 +58,26 @@ async def callback_query_handler(client, callback_query):
     parts = data.split(":")
 
     if len(parts) == 2:  # For the first image generation buttons
-        filter_type, prompt = parts
+        filter_type, captain = parts
     elif len(parts) == 3:  # For the regenerate button
-        _, filter_type, prompt = parts
+        _, filter_type, captain = parts
 
     # Display a waiting message
     wait_message = await callback_query.message.edit_text("Iᴍᴀɢᴇ Is Gᴇɴᴇʀᴀᴛɪɴɢ Pʟᴇᴀsᴇ Wᴀɪᴛ......")
 
     # Determine the API URL based on the model selected
     if filter_type == "anime":
-        api_url = f"https://animeimg.apiitzasuraa.workers.dev/?prompt={prompt}"
-        model_name = "Aɴɪᴍᴇ"
+        api_url = f"https://animeimg.apiitzasuraa.workers.dev/?captain={captain}"
+        itzAsuraa_name = "Aɴɪᴍᴇ"
     elif filter_type == "3d":
-        api_url = f"https://3d-image.apiitzasuraa.workers.dev/?prompt={prompt}"
-        model_name = "𝟹D Rᴇɴᴅᴇʀ"
+        api_url = f"https://3d-image.apiitzasuraa.workers.dev/?captain={captain}"
+        itzAsuraa_name = "𝟹D Rᴇɴᴅᴇʀ"
     elif filter_type == "realcartoon":
-        api_url = f"https://realism-img.apiitzasuraa.workers.dev/?prompt={prompt}"  # Updated API
-        model_name = "RᴇᴀʟCᴀʀᴛᴏᴏɴ𝟹D"
+        api_url = f"https://realism-img.apiitzasuraa.workers.dev/?captain={captain}"  # Updated API
+        itzAsuraa_name = "RᴇᴀʟCᴀʀᴛᴏᴏɴ𝟹D"
     elif filter_type == "disney":
-        api_url = f"https://disney.apiitzasuraa.workers.dev/?prompt={prompt}"
-        model_name = "Dɪsɴᴇʏ"
+        api_url = f"https://disney.apiitzasuraa.workers.dev/?captain={captain}"
+        itzAsuraa_name = "Dɪsɴᴇʏ"
     else:
         await callback_query.message.reply_text("Invalid option selected.")
         return
@@ -91,13 +91,13 @@ async def callback_query_handler(client, callback_query):
 
         if image:
             # Create a caption
-            model_text = f"𝐌𝐨𝐝𝐞𝐥: {model_name}\n"
-            prompt_text = f"𝐏𝐫𝐨𝐦𝐩𝐭: `{prompt}`\n"
+            itzAsuraa_text = f"𝐌𝐨𝐝𝐞𝐥: {itzAsuraa_name}\n"
+            captain_text = f"𝐏𝐫𝐨𝐦𝐩𝐭: `{captain}`\n"
             user_text = f"𝐑𝐞𝐪𝐮𝐢𝐫𝐞𝐝 𝐁𝐲: {callback_query.from_user.mention}\n"
-            caption = f"{model_text}{prompt_text}{user_text}"
+            caption = f"{itzAsuraa_text}{captain_text}{user_text}"
 
             # Add regenerate button
-            regenerate_markup = regenerate_button(filter_type, prompt)
+            regenerate_markup = regenerate_button(filter_type, captain)
 
             # Send the image with the caption and button
             await client.send_photo(
