@@ -318,7 +318,7 @@ async def update_(client, message, _):
 
 @app.on_message(filters.command(["restart"]) & SUDOERS)
 async def restart_(_, message):
-    response = await message.reply_text("ʀᴇsᴛᴀʀᴛɪɴɢ...")
+    response = await message.reply_text("ʙᴀʙᴜ ᴛʜᴏᴅᴀ ᴡᴀɪᴛ ᴋᴀʀᴏ, ғʀᴇsʜ ʜᴏ ᴋᴀʀ ᴀᴛɪ ʜᴜ ᴀᴘɴᴀ ᴅʏᴀɴ ʀᴀᴋʜɴᴀ...")
     ac_chats = await get_active_chats()
     for x in ac_chats:
         try:
