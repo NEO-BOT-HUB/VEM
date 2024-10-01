@@ -1,3 +1,4 @@
+
 import requests
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto, InputMedia
@@ -21,19 +22,17 @@ def generate_buttons(prompt):
     )
     return buttons
 
-# Async function to get images from the API
-async def get_images(api_url, count=4):
-    images = []
+# Async function to get one image from the API
+async def get_image(api_url):
     async with aiohttp.ClientSession() as session:
-        for _ in range(count):
-            async with session.get(api_url) as response:
-                response.raise_for_status()
-                image_url = (await response.json()).get('image')
-                if image_url:
-                    async with session.get(image_url) as img_response:
-                        img = BytesIO(await img_response.read())
-                        images.append(img)
-    return images
+        async with session.get(api_url) as response:
+            response.raise_for_status()
+            image_url = (await response.json()).get('image')
+            if image_url:
+                async with session.get(image_url) as img_response:
+                    img = BytesIO(await img_response.read())
+                    return img
+    return None
 
 # Function to create "🔄️ Rᴇɢᴇɴᴇʀᴀᴛᴇ 🔄️" button
 def regenerate_button(model, prompt):
@@ -84,13 +83,13 @@ async def callback_query_handler(client, callback_query):
         return
 
     try:
-        # Get 4 distinct images from the API
-        images = await get_images(api_url, count=4)  # Updated for async
+        # Get only 1 image from the API
+        image = await get_image(api_url)  # Updated for async and single image
 
         # Remove the 'Generating' message
         await client.delete_messages(chat_id=callback_query.message.chat.id, message_ids=wait_message.id)
 
-        if images:
+        if image:
             # Create a caption
             model_text = f"𝐌𝐨𝐝𝐞𝐥: {model_name}\n"
             prompt_text = f"𝐏𝐫𝐨𝐦𝐩𝐭: `{prompt}`\n"
@@ -100,21 +99,13 @@ async def callback_query_handler(client, callback_query):
             # Add regenerate button
             regenerate_markup = regenerate_button(filter_type, prompt)
 
-            # Prepare the first image with the caption and button
+            # Send the image with the caption and button
             await client.send_photo(
                 chat_id=callback_query.message.chat.id,
-                photo=images[0],  # Send the first image
+                photo=image,  # Send the single image
                 caption=caption,  # Add the caption
                 reply_markup=regenerate_markup  # Add the regenerate button below the image
             )
-
-            # Optionally send the rest of the images without captions/buttons
-            if len(images) > 1:
-                media_group = []
-                for img in images[1:]:
-                    media_group.append(InputMediaPhoto(img))
-                await client.send_media_group(chat_id=callback_query.message.chat.id, media=media_group)
-
         else:
             await callback_query.message.reply_text("No image found.")
     except Exception as e:
