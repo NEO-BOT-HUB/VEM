@@ -1,8 +1,9 @@
 import requests
 from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto, InputMedia
 from io import BytesIO
 from DnsXMusic import app
+import aiohttp  # Updated to async HTTP requests
 
 # Function to generate buttons for model selection
 def generate_buttons(prompt):
@@ -20,17 +21,18 @@ def generate_buttons(prompt):
     )
     return buttons
 
-# Function to get images from the API
-def get_images(api_url, count=4):
+# Async function to get images from the API
+async def get_images(api_url, count=4):
     images = []
-    for _ in range(count):
-        response = requests.get(api_url)
-        response.raise_for_status()
-        image_url = response.json().get('image')
-        if image_url:
-            img_response = requests.get(image_url)
-            img = BytesIO(img_response.content)
-            images.append(img)
+    async with aiohttp.ClientSession() as session:
+        for _ in range(count):
+            async with session.get(api_url) as response:
+                response.raise_for_status()
+                image_url = (await response.json()).get('image')
+                if image_url:
+                    async with session.get(image_url) as img_response:
+                        img = BytesIO(await img_response.read())
+                        images.append(img)
     return images
 
 # Function to create "🔄️ Rᴇɢᴇɴᴇʀᴀᴛᴇ 🔄️" button
@@ -55,15 +57,15 @@ async def handle_image_generation(client, message):
 async def callback_query_handler(client, callback_query):
     data = callback_query.data
     parts = data.split(":")
-    
+
     if len(parts) == 2:  # For the first image generation buttons
         filter_type, prompt = parts
     elif len(parts) == 3:  # For the regenerate button
         _, filter_type, prompt = parts
-    
+
     # Display a waiting message
     wait_message = await callback_query.message.edit_text("Iᴍᴀɢᴇ Is Gᴇɴᴇʀᴀᴛɪɴɢ Pʟᴇᴀsᴇ Wᴀɪᴛ......")
-    
+
     # Determine the API URL based on the model selected
     if filter_type == "anime":
         api_url = f"https://animeimg.apiitzasuraa.workers.dev/?prompt={prompt}"
@@ -80,35 +82,39 @@ async def callback_query_handler(client, callback_query):
     else:
         await callback_query.message.reply_text("Invalid option selected.")
         return
-    
+
     try:
         # Get 4 distinct images from the API
-        images = get_images(api_url, count=4)
-        
+        images = await get_images(api_url, count=4)  # Updated for async
+
         # Remove the 'Generating' message
         await client.delete_messages(chat_id=callback_query.message.chat.id, message_ids=wait_message.id)
 
         if images:
-            media_group = []
-
-            # Prepare the images for sending in one message
-            for img in images:
-                media_group.append(InputMediaPhoto(img))
-            
-            # Send all images in one message
-            await client.send_media_group(chat_id=callback_query.message.chat.id, media=media_group)
+            # Create a caption
+            model_text = f"𝐌𝐨𝐝𝐞𝐥: {model_name}\n"
+            prompt_text = f"𝐏𝐫𝐨𝐦𝐩𝐭: `{prompt}`\n"
+            user_text = f"𝐑𝐞𝐪𝐮𝐢𝐫𝐞𝐝 𝐁𝐲: {callback_query.from_user.mention}\n"
+            caption = f"{model_text}{prompt_text}{user_text}"
 
             # Add regenerate button
             regenerate_markup = regenerate_button(filter_type, prompt)
 
-            # Send details and regenerate button in the same message
-            model_text = f"𝐌𝐨𝐝𝐞𝐥: {model_name}\n"
-            prompt_text = f"𝐏𝐫𝐨𝐦𝐩𝐭: `{prompt}`\n"
-            user_text = f"𝐑𝐞𝐪𝐮𝐢𝐫𝐞𝐝 𝐁𝐲: {callback_query.from_user.mention}\n"
+            # Prepare the first image with the caption and button
+            await client.send_photo(
+                chat_id=callback_query.message.chat.id,
+                photo=images[0],  # Send the first image
+                caption=caption,  # Add the caption
+                reply_markup=regenerate_markup  # Add the regenerate button below the image
+            )
 
-            caption = f"{model_text}\n{prompt_text}\n{user_text}"
-            
-            await callback_query.message.reply_text(caption, reply_markup=regenerate_markup)
+            # Optionally send the rest of the images without captions/buttons
+            if len(images) > 1:
+                media_group = []
+                for img in images[1:]:
+                    media_group.append(InputMediaPhoto(img))
+                await client.send_media_group(chat_id=callback_query.message.chat.id, media=media_group)
+
         else:
             await callback_query.message.reply_text("No image found.")
     except Exception as e:
