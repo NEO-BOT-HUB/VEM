@@ -21,7 +21,7 @@ def generate_buttons(prompt):
     return buttons
 
 # Function to get images from the API
-def get_images(api_url, count=4):
+def get_images(api_url, count=1):
     images = []
     for _ in range(count):
         response = requests.get(api_url)
