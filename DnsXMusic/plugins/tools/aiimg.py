@@ -1,3 +1,4 @@
+import asyncio
 import requests
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
@@ -48,6 +49,25 @@ def regenerate_button(model, prompt):
     )
     return buttons
 
+# Async function to animate the waiting message
+async def animate_wait_message(client, chat_id, message_id):
+    loading_texts = [
+        "Iᴍᴀɢᴇ..........................",
+        "Iᴍᴀɢᴇ Is.......................",
+        "Iᴍᴀɢᴇ Is Gᴇɴᴇʀᴀᴛɪɴɢ............",
+        "Iᴍᴀɢᴇ Is Gᴇɴᴇʀᴀᴛɪɴɢ Pʟᴇᴀsᴇ......",
+        "Iᴍᴀɢᴇ Is Gᴇɴᴇʀᴀᴛɪɴɢ Pʟᴇᴀsᴇ Wᴀɪᴛ.",
+        "Iᴍᴀɢᴇ Is Gᴇɴᴇʀᴀᴛɪɴɢ Pʟᴇᴀsᴇ Wᴀɪᴛ...",
+        "Iᴍᴀɢᴇ Is Gᴇɴᴇʀᴀᴛɪɴɢ Pʟᴇᴀsᴇ Wᴀɪᴛ....."
+    ]
+    while True:
+        for text in loading_texts:
+            try:
+                await client.edit_message_text(chat_id=chat_id, message_id=message_id, text=text)
+                await asyncio.sleep(1)  # Sleep for 1 second before updating the text
+            except Exception:
+                return  # Stop the animation if the message is deleted or can't be updated
+
 # Command handler for image generation
 @app.on_message(filters.command(["make", "ake"], prefixes=["/", "!", ".", "M", "m"]))
 async def handle_image_generation(client, message):
@@ -75,8 +95,11 @@ async def callback_query_handler(client, callback_query):
         return
     
     # Display a waiting message
-    wait_message = await callback_query.message.edit_text("Iᴍᴀɢᴇ Is Gᴇɴᴇʀᴀᴛɪɴɢ Pʟᴇᴀsᴇ Wᴀɪᴛ......")
-    
+    wait_message = await callback_query.message.reply_text("Iᴍᴀɢᴇ Is Gᴇɴᴇʀᴀᴛɪɴɢ Pʟᴇᴀsᴇ Wᴀɪᴛ......")
+
+    # Start the animation in the background
+    asyncio.create_task(animate_wait_message(client, callback_query.message.chat.id, wait_message.id))
+
     # Determine the API URL based on the model selected
     if filter_type == "anime":
         api_url = f"https://animeimg.apiitzasuraa.workers.dev/?prompt={prompt}"
