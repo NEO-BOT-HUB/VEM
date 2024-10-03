@@ -1,4 +1,3 @@
-import asyncio
 import requests
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
@@ -25,7 +24,7 @@ def generate_buttons(prompt):
     return buttons
 
 # Function to get images from the API
-def get_images(api_url, count=1):
+def get_images(api_url, count=4):
     images = []
     for _ in range(count):
         response = requests.get(api_url)
@@ -48,25 +47,6 @@ def regenerate_button(model, prompt):
         ]
     )
     return buttons
-
-# Async function to animate the waiting message
-async def animate_wait_message(client, chat_id, message_id):
-    loading_texts = [
-        "Iᴍᴀɢᴇ..........................",
-        "Iᴍᴀɢᴇ Is.......................",
-        "Iᴍᴀɢᴇ Is Gᴇɴᴇʀᴀᴛɪɴɢ............",
-        "Iᴍᴀɢᴇ Is Gᴇɴᴇʀᴀᴛɪɴɢ Pʟᴇᴀsᴇ......",
-        "Iᴍᴀɢᴇ Is Gᴇɴᴇʀᴀᴛɪɴɢ Pʟᴇᴀsᴇ Wᴀɪᴛ.",
-        "Iᴍᴀɢᴇ Is Gᴇɴᴇʀᴀᴛɪɴɢ Pʟᴇᴀsᴇ Wᴀɪᴛ...",
-        "Iᴍᴀɢᴇ Is Gᴇɴᴇʀᴀᴛɪɴɢ Pʟᴇᴀsᴇ Wᴀɪᴛ....."
-    ]
-    while True:
-        for text in loading_texts:
-            try:
-                await client.edit_message_text(chat_id=chat_id, message_id=message_id, text=text)
-                await asyncio.sleep(1)  # Sleep for 1 second before updating the text
-            except Exception:
-                return  # Stop the animation if the message is deleted or can't be updated
 
 # Command handler for image generation
 @app.on_message(filters.command(["make", "ake"], prefixes=["/", "!", ".", "M", "m"]))
@@ -94,12 +74,10 @@ async def callback_query_handler(client, callback_query):
         await callback_query.message.delete()
         return
     
-    # Display a waiting message
-    wait_message = await callback_query.message.reply_text("Iᴍᴀɢᴇ Is Gᴇɴᴇʀᴀᴛɪɴɢ Pʟᴇᴀsᴇ Wᴀɪᴛ......")
+    # Display an animated emoji (⌛) during image generation
+    wait_message = await callback_query.message.edit_text("⌛")
 
-    # Start the animation in the background
-    asyncio.create_task(animate_wait_message(client, callback_query.message.chat.id, wait_message.id))
-
+    
     # Determine the API URL based on the model selected
     if filter_type == "anime":
         api_url = f"https://animeimg.apiitzasuraa.workers.dev/?prompt={prompt}"
@@ -122,7 +100,7 @@ async def callback_query_handler(client, callback_query):
     
     try:
         # Get 4 distinct images from the API
-        images = get_images(api_url, count=1)
+        images = get_images(api_url, count=4)
         
         # Remove the 'Generating' message
         await client.delete_messages(chat_id=callback_query.message.chat.id, message_ids=wait_message.id)
