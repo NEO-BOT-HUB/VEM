@@ -117,7 +117,7 @@ async def callback_query_handler(client, callback_query):
     
     try:
         # Get 4 distinct images from the API
-        images = get_images(api_url, count=4)
+        images = get_images(api_url, count=1)
         
         # Remove the 'Generating' message
         await client.delete_messages(chat_id=callback_query.message.chat.id, message_ids=wait_message.id)
