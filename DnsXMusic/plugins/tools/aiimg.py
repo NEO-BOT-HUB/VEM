@@ -48,6 +48,29 @@ def regenerate_button(model, prompt):
     )
     return buttons
 
+# Function to get images from the API
+def get_images(api_url, count=4):
+    images = []
+    for _ in range(count):
+        response = requests.get(api_url)
+        response.raise_for_status()
+        image_url = response.json().get('image')
+        if image_url:
+            img_response = requests.get(image_url)
+            img = BytesIO(img_response.content)
+            images.append(img)
+    return images
+
+# Function to create buttons for regeneration and closing
+def regeneration_buttons(model, prompt):
+    buttons = InlineKeyboardMarkup(
+        [
+            [InlineKeyboardButton("🔄️ Rᴇɢᴇɴᴇʀᴀᴛᴇ 🔄️", callback_data=f"regenerate:{model}:{prompt}"),
+             InlineKeyboardButton("❌ Cʟᴏsᴇ ❌", callback_data=f"close:{model}:{prompt}")]
+        ]
+    )
+    return buttons
+
 # Command handler for image generation
 @app.on_message(filters.command(["make", "ake"], prefixes=["/", "!", ".", "M", "m"]))
 async def handle_image_generation(client, message):
@@ -69,15 +92,9 @@ async def callback_query_handler(client, callback_query):
     elif len(parts) == 3:  # For the regenerate button
         _, filter_type, prompt = parts
     
-    # Handle the 'close' button press
-    if data == "close":
-        await callback_query.message.delete()
-        return
-    
-    # Display an animated emoji (⏳) during image generation
+    # Display a waiting message with an hourglass emoji
     wait_message = await callback_query.message.edit_text("⏳")
 
-    
     # Determine the API URL based on the model selected
     if filter_type == "anime":
         api_url = f"https://animeimg.apiitzasuraa.workers.dev/?prompt={prompt}"
@@ -91,7 +108,7 @@ async def callback_query_handler(client, callback_query):
     elif filter_type == "disney":
         api_url = f"https://disney.apiitzasuraa.workers.dev/?prompt={prompt}"
         model_name = "Dɪsɴᴇʏ"
-    elif filter_type == "realistic":  # New Rᴇᴀʟɪsᴛɪᴄ button
+    elif filter_type == "realistic":
         api_url = f"https://image.apiitzasuraa.workers.dev/?prompt={prompt}"
         model_name = "Rᴇᴀʟɪsᴛɪᴄ"
     else:
@@ -100,7 +117,7 @@ async def callback_query_handler(client, callback_query):
     
     try:
         # Get 4 distinct images from the API
-        images = get_images(api_url, count=1)
+        images = get_images(api_url, count=4)
         
         # Remove the 'Generating' message
         await client.delete_messages(chat_id=callback_query.message.chat.id, message_ids=wait_message.id)
@@ -115,8 +132,8 @@ async def callback_query_handler(client, callback_query):
             # Send all images in one message
             await client.send_media_group(chat_id=callback_query.message.chat.id, media=media_group)
 
-            # Add regenerate button with "🔄️ Rᴇɢᴇɴᴇʀᴀᴛᴇ 🔄️" and "❌ Cʟᴏsᴇ ❌"
-            regenerate_markup = regenerate_button(filter_type, prompt)
+            # Add regenerate and close buttons
+            regenerate_markup = regeneration_buttons(filter_type, prompt)
 
             # Send details and regenerate button in the same message
             model_text = f"𝐌𝐨𝐝𝐞𝐥: {model_name}\n"
