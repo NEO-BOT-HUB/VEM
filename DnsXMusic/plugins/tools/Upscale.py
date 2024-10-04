@@ -11,7 +11,7 @@ def upscale_image(image_data, scale_factor=4):
     success, encoded_img = cv2.imencode('.jpg', upscaled_img)
     return encoded_img.tobytes() if success else None
 
-@app.on_message(filters.command(["upscale", "pscale", "p"], prefixes=["/", "!", ".", "U", "u"]) & filters.reply)
+@app.on_message(filters.command("upscale") & filters.reply)
 async def upscale_command(client, message):
     # Ensure the command is a reply to an image
     if message.reply_to_message and message.reply_to_message.photo:
