@@ -13,7 +13,7 @@ def upscale_image(image_data, scale_factor=4):
 
 @app.on_message(filters.command(["upscale", "pscale", "p"], prefixes=["/", "!", ".", "U", "u"]) & filters.reply)
 async def upscale_command(client, message):
-    # Check if the reply contains an image
+    # Ensure the command is a reply to an image
     if message.reply_to_message and message.reply_to_message.photo:
         # Get the largest available image
         photo = message.reply_to_message.photo[-1]
