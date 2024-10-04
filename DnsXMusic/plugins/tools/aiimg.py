@@ -49,7 +49,7 @@ def regenerate_button(model, prompt):
     return buttons
 
 # Function to get images from the API
-def get_images(api_url, count=1):
+def get_images(api_url, count=4):
     images = []
     for _ in range(count):
         response = requests.get(api_url)
@@ -117,7 +117,7 @@ async def callback_query_handler(client, callback_query):
     
     try:
         # Get 4 distinct images from the API
-        images = get_images(api_url, count=1)
+        images = get_images(api_url, count=4)
         
         # Remove the 'Generating' message
         await client.delete_messages(chat_id=callback_query.message.chat.id, message_ids=wait_message.id)
