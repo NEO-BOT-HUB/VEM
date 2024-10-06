@@ -97,19 +97,19 @@ async def callback_query_handler(client, callback_query):
 
     # Determine the API URL based on the model selected
     if filter_type == "anime":
-        api_url = f"https://animeimg.apiitzasuraa.workers.dev/?prompt={prompt}"
+        api_url = f"https://anime-img.codesearch.workers.dev/prompt={prompt}"
         model_name = "Aɴɪᴍᴇ"
     elif filter_type == "3d":
-        api_url = f"https://3d-image.apiitzasuraa.workers.dev/?prompt={prompt}"
+        api_url = f"https://3d-image.codesearch.workers.dev/prompt={prompt}"
         model_name = "𝟹D Rᴇɴᴅᴇʀ"
     elif filter_type == "realcartoon":
-        api_url = f"https://realism-img.apiitzasuraa.workers.dev/?prompt={prompt}"
+        api_url = f"https://text2img.codesearch.workers.dev/prompt={prompt}"
         model_name = "RᴇᴀʟCᴀʀᴛᴏᴏɴ𝟹D"
     elif filter_type == "disney":
-        api_url = f"https://disney.apiitzasuraa.workers.dev/?prompt={prompt}"
+        api_url = f"https://disney-img.codesearch.workers.dev/prompt={prompt}"
         model_name = "Dɪsɴᴇʏ"
     elif filter_type == "realistic":
-        api_url = f"https://image.apiitzasuraa.workers.dev/?prompt={prompt}"
+        api_url = f"https://realism-img.codesearch.workers.dev/prompt={prompt}"
         model_name = "Rᴇᴀʟɪsᴛɪᴄ"
     else:
         await callback_query.message.reply_text("Invalid option selected.")
