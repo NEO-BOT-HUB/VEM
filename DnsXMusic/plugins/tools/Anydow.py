@@ -1,5 +1,6 @@
-import requests
+from pyrogram import filters  # filters ka import
 from DnsXMusic import app  # Importing the existing app
+import requests
 
 # All-in-one social media downloader API
 DOWNLOADER_API = "https://bj-tricks.serv00.net/BJ_Coder-Apis/Fb-Downloader.php"
@@ -18,7 +19,7 @@ def download_content(url):
         return "API request failed!"
 
 # Bot function jo user ke link ko handle karega
-@app.on_message(filters.text & filters.private)
+@app.on_message(filters.text & filters.private)  # Correct usage with filters imported
 def handle_message(client, message):
     url = message.text
     if "instagram.com" in url or "facebook.com" in url or "tiktok.com" in url:  # Supported platforms
@@ -26,5 +27,3 @@ def handle_message(client, message):
         message.reply_text(f"Here's your content: {media_url}")
     else:
         message.reply_text("Please send a valid social media link (Instagram, Facebook, TikTok).")
-
-# Bot ko run karna zaroori nahi, since app from DnsXMusic will handle this
