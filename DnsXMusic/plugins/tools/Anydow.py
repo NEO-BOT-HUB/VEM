@@ -1,22 +1,41 @@
+import random
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
-from DnsXMusic import app  # Your bot's app
+from DnsXMusic import userbot as us, app
+from DnsXMusic.core.userbot import assistants
 
-# Function to forward the message to @SaveMedia_bot and get a response
+# Social Media Download Bot Options
+download_bots = ["@SaveMedia_bot", "@instasavegrambot"]
+
 @app.on_message(filters.text & filters.private)
-def forward_to_savemedia(client, message):
-    user_link = message.text
+async def download_social_media(client: Client, message: Message):
+    url = message.text
 
-    if "instagram.com" in user_link or "facebook.com" in user_link:
-        # Forward the message to @SaveMedia_bot
-        forward_message = client.send_message("@SaveMedia_bot", user_link)
+    # Check if message contains a valid Instagram or Facebook URL
+    if "instagram.com" in url or "facebook.com" in url:
+        # Select a random bot from the list
+        bot_choice = random.choice(download_bots)
 
-        # Wait for response from @SaveMedia_bot (you can add a delay or timeout)
-        forward_message = client.listen()  # listen for the reply from SaveMedia bot
-        
-        # Send the result back to the user
-        client.send_message(message.chat.id, f"Here's your content: {forward_message.text}")
+        # Choose an assistant bot (from DnsXMusic assistants)
+        if 1 in assistants:
+            assistant_bot = us.one  # Using the first assistant as an example
+
+        # Send the media link to the chosen social media bot using assistant bot
+        forwarded_message = await assistant_bot.send_message(bot_choice, url)
+
+        # Notify the user that their request is being processed
+        processing_msg = await message.reply("🔄 Processing your request, please wait...")
+
+        # Wait for the bot's response
+        async for response in assistant_bot.search_messages(bot_choice):
+            if response.text:
+                await message.reply(f"Here is your content: {response.text}")
+                break
+
+        # Clean up messages (optional)
+        await forwarded_message.delete()
+        await processing_msg.delete()
 
     else:
-        client.send_message(message.chat.id, "Please send a valid social media link (Instagram, Facebook, etc.).")
+        await message.reply("⚠️ Please provide a valid Instagram or Facebook link.")
