@@ -27,10 +27,11 @@ async def download_social_media(client: Client, message: Message):
         # Notify the user that their request is being processed
         processing_msg = await message.reply("🔄 Processing your request, please wait...")
 
-        # Wait for the bot's response
+        # Wait for the bot's response and extract the content
         async for response in assistant_bot.search_messages(bot_choice):
             if response.text:
-                await message.reply(f"Here is your content: {response.text}")
+                # You can add some logic to filter the content if needed
+                await message.reply(f"Here is your content: {response.text}")  # Change this to extract URLs specifically
                 break
 
         # Clean up messages (optional)
