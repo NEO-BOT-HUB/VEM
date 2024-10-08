@@ -2,71 +2,101 @@ import asyncio
 import aiohttp
 from pyrogram import filters
 from DnsXMusic import app
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # API URL template
 API_URL = "https://chatwithai.codesearch.workers.dev/chat={message}&model={model}"
 
-# Available models list
-AVAILABLE_MODELS = [
-    'blackbox',
-    'gemini-1.5-flash',
-    'llama-3.1-8b',
-    'llama-3.1-70b', 
-    'llama-3.1-405b',
-    'ImageGenerationLV45LJp',
-    'gpt-4o',
-    'gemini-pro',
-    'claude-sonnet-3.5'
-]
+# Available models with descriptions
+MODELS_INFO = {
+    'claude-sonnet-3.5': "🎯 Best for detailed answers & analysis",
+    'gemini-pro': "🚀 Fast & efficient for general tasks",
+    'gpt-4o': "🧠 Advanced reasoning & complex tasks",
+    'blackbox': "⚡ Quick responses for simple queries",
+    'gemini-1.5-flash': "💫 Latest Gemini model, very fast",
+    'llama-3.1-8b': "📱 Lightweight & efficient",
+    'llama-3.1-70b': "💪 Powerful for various tasks",
+    'llama-3.1-405b': "🔥 Most powerful Llama model",
+    'ImageGenerationLV45LJp': "🎨 Specialized in creative tasks"
+}
 
-# Help message
-HELP_MESSAGE = f"""
-**🤖 AI Chat Commands:**
+# User preferences dictionary
+user_preferences = {}
 
-⊚ Format: /ask <message> --model <model_name>
-⊚ Example: /ask Hello! --model gemini-pro
+@app.on_message(filters.command("aimodels"))
+async def select_model(client, message):
+    user_id = message.from_user.id
+    
+    # Create keyboard with models
+    keyboard = []
+    row = []
+    for i, (model, desc) in enumerate(MODELS_INFO.items()):
+        # Create 2 buttons per row
+        if i % 2 == 0 and row:
+            keyboard.append(row)
+            row = []
+        row.append(InlineKeyboardButton(
+            f"{model.split('-')[0].capitalize()}",
+            callback_data=f"select_model_{model}"
+        ))
+    if row:
+        keyboard.append(row)
 
-**📝 Available Models:**
-{chr(10).join(f"⊚ {model}" for model in AVAILABLE_MODELS)}
+    text = "**🤖 Select Your Preferred AI Model:**\n\n"
+    for model, desc in MODELS_INFO.items():
+        text += f"**{model}**\n{desc}\n\n"
+    
+    await message.reply_text(
+        text,
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
-**Default model:** blackbox
-"""
-
-@app.on_message(filters.command("aihelp"))
-async def help_command(_, message):
-    await message.reply_text(HELP_MESSAGE)
+@app.on_callback_query(filters.regex("^select_model_"))
+async def model_selected(client, callback_query):
+    user_id = callback_query.from_user.id
+    selected_model = callback_query.data.replace("select_model_", "")
+    
+    user_preferences[user_id] = selected_model
+    
+    await callback_query.message.edit_text(
+        f"✅ Your preferred model has been set to **{selected_model}**\n\n"
+        "You can now use /ask command directly without specifying the model.\n"
+        "To change model anytime, use /aimodels again."
+    )
 
 @app.on_message(filters.command("ask"))
 async def ai_chat(client, message):
     try:
-        # Get the message text
+        user_id = message.from_user.id
+        
+        # Check if message is provided
         if len(message.command) < 2:
             await message.reply_text(
-                "❌ Please provide a message.\n\nFormat: /ask <message> --model <model_name>"
+                "❌ Please provide a message.\n\nFormat: /ask <your_message>"
             )
             return
 
-        # Extract message and model
-        full_message = " ".join(message.command[1:])
-        model = "blackbox"  # Default model
+        # Get user's preferred model or set default
+        model = user_preferences.get(user_id, 'claude-sonnet-3.5')
         
-        if "--model" in full_message:
+        # Extract message
+        user_message = " ".join(message.command[1:])
+        
+        # If user explicitly specifies model, override preference
+        if "--model" in user_message:
             try:
-                msg_parts = full_message.split("--model")
+                msg_parts = user_message.split("--model")
                 user_message = msg_parts[0].strip()
-                model = msg_parts[1].strip()
+                specified_model = msg_parts[1].strip()
                 
-                if model not in AVAILABLE_MODELS:
+                if specified_model in MODELS_INFO:
+                    model = specified_model
+                else:
                     await message.reply_text(
-                        f"❌ Invalid model!\n\n**Available models:**\n" + 
-                        "\n".join(f"⊚ {m}" for m in AVAILABLE_MODELS)
+                        "❌ Invalid model specified! Using your preferred model instead."
                     )
-                    return
             except:
-                await message.reply_text("❌ Invalid format for model specification")
-                return
-        else:
-            user_message = full_message
+                await message.reply_text("❌ Invalid format, using your preferred model.")
 
         # Send "typing" action
         async with client.action(message.chat.id, "typing"):
@@ -77,14 +107,13 @@ async def ai_chat(client, message):
                     if response.status == 200:
                         result = await response.text()
                         
-                        # Format the response
                         response_text = f"""
 **🤖 AI Response:**
-**Model:** {model}
+**Using Model:** {model}
 
-{result}
-"""
-                        # Split response into chunks if too long
+{result}"""
+                        
+                        # Split response if too long
                         if len(response_text) > 4096:
                             chunks = [response_text[i:i+4096] for i in range(0, len(response_text), 4096)]
                             for chunk in chunks:
@@ -99,17 +128,21 @@ async def ai_chat(client, message):
     except Exception as e:
         await message.reply_text(f"❌ Error occurred: {str(e)}")
 
-# Optional: Add command to list available models
-@app.on_message(filters.command("aimodels"))
-async def list_models(_, message):
-    models_text = "**📝 Available AI Models:**\n\n" + "\n".join(f"⊚ {model}" for model in AVAILABLE_MODELS)
-    await message.reply_text(models_text)
+# Help command
+@app.on_message(filters.command("aihelp"))
+async def help_command(_, message):
+    help_text = """
+**🤖 AI Chat Assistant Help**
 
-# Error handler
-@app.on_message(filters.command("ask") & filters.regex(r'/ask$'))
-async def empty_ask(_, message):
-    await message.reply_text(
-        "❌ Please provide a message with the /ask command.\n\n"
-        "Format: /ask <your_message> --model <model_name>\n"
-        "Example: /ask Hello! --model gemini-pro"
-    )
+**Available Commands:**
+⊚ /ask <message> - Chat with AI using your preferred model
+⊚ /aimodels - Select your preferred AI model
+⊚ /aihelp - Show this help message
+
+**Note:** 
+- New users will automatically use Claude-3.5 model
+- You can change your preferred model anytime using /aimodels
+- You can still override your preference by using:
+  `/ask <message> --model <model_name>`
+"""
+    await message.reply_text(help_text)
