@@ -1,4 +1,5 @@
 import random
+import re
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
@@ -30,8 +31,16 @@ async def download_social_media(client: Client, message: Message):
         # Wait for the bot's response and extract the content
         async for response in assistant_bot.search_messages(bot_choice):
             if response.text:
-                # You can add some logic to filter the content if needed
-                await message.reply(f"Here is your content: {response.text}")  # Change this to extract URLs specifically
+                # Extract media URLs from the response text
+                media_urls = re.findall(r'(https?://\S+)', response.text)
+
+                if media_urls:
+                    # Send each media URL to the user
+                    for media_url in media_urls:
+                        await message.reply(f"Here's a media link: {media_url}")
+                else:
+                    await message.reply("⚠️ No media links found.")
+                
                 break
 
         # Clean up messages (optional)
