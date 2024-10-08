@@ -1,29 +1,35 @@
-from pyrogram import filters
-
+from config import LOG, LOG_GROUP_ID
 from DnsXMusic import app
-from DnsXMusic.misc import SUDOERS
-from DnsXMusic.utils.database import add_off, add_on
-from DnsXMusic.utils.decorators.language import language
+from DnsXMusic.utils.database import is_on_off
 
 
-@app.on_message(filters.command(["logger"]) & SUDOERS)
-@language
-async def logger(client, message, _):
-    usage = _["log_1"]
-    if len(message.command) != 2:
-        return await message.reply_text(usage)
-    state = message.text.split(None, 1)[1].strip().lower()
-    if state == "enable":
-        await add_on(2)
-        await message.reply_text(_["log_2"])
-    elif state == "disable":
-        await add_off(2)
-        await message.reply_text(_["log_3"])
-    else:
-        await message.reply_text(usage)
+async def play_logs(message, streamtype):
+    if await is_on_off(LOG):
+        if message.chat.username:
+            chatusername = f"@{message.chat.username}"
+        else:
+            chatusername = "ᴘʀɪᴠᴀᴛᴇ ɢʀᴏᴜᴘ"
 
-@app.on_message(filters.command(["cookies"]) & SUDOERS)
-@language
-async def logger(client, message, _):
-    await message.reply_document("cookies/logs.csv")
-    await message.reply_text("Please check given file to cookies file choosing logs...")
+        logger_text = f"""
+**{app.mention} ᴘʟᴀʏ ʟᴏɢ**
+
+**ᴄʜᴀᴛ ɪᴅ :** `{message.chat.id}`
+**ᴄʜᴀᴛ ɴᴀᴍᴇ :** {message.chat.title}
+**ᴄʜᴀᴛ ᴜsᴇʀɴᴀᴍᴇ :** {chatusername}
+
+**ᴜsᴇʀ ɪᴅ :** `{message.from_user.id}`
+**ɴᴀᴍᴇ :** {message.from_user.mention}
+**ᴜsᴇʀɴᴀᴍᴇ :** @{message.from_user.username}
+
+**ǫᴜᴇʀʏ :** {message.text.split(None, 1)[1]}
+**sᴛʀᴇᴀᴍᴛʏᴘᴇ :** {streamtype}"""
+        if message.chat.id != LOG_GROUP_ID:
+            try:
+                await app.send_message(
+                    chat_id=LOG_GROUP_ID,
+                    text=logger_text,
+                    disable_web_page_preview=True,
+                )
+            except Exception as e:
+                print(e)
+        return
