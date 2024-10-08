@@ -1,39 +1,22 @@
-import requests
-from bs4 import BeautifulSoup
-from pyrogram import filters
-from DnsXMusic import app  # Your existing bot's app
+from pyrogram import Client, filters
+from pyrogram.types import Message
 
-# Function to scrape content from fastvideosave.net
-def download_content_from_fastvideosave(url):
-    # Request the webpage
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
-    data = {
-        'url': url
-    }
-    response = requests.post('https://fastvideosave.net/download', headers=headers, data=data)
-    
-    if response.status_code == 200:
-        # Parse the HTML page
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # Find the download link (adjust this part based on the actual HTML structure)
-        download_link = soup.find('a', {'class': 'download-btn'})  # Update selector as per HTML structure
-        
-        if download_link:
-            return download_link['href']
-        else:
-            return "Download link not found!"
-    else:
-        return "Failed to reach website!"
+from DnsXMusic import app  # Your bot's app
 
-# Bot function to handle the user's input link
+# Function to forward the message to @SaveMedia_bot and get a response
 @app.on_message(filters.text & filters.private)
-def handle_message(client, message):
-    url = message.text
-    if "instagram.com" in url or "facebook.com" in url:  # Supported platforms
-        media_url = download_content_from_fastvideosave(url)
-        message.reply_text(f"Here's your content: {media_url}")
+def forward_to_savemedia(client, message):
+    user_link = message.text
+
+    if "instagram.com" in user_link or "facebook.com" in user_link:
+        # Forward the message to @SaveMedia_bot
+        forward_message = client.send_message("@SaveMedia_bot", user_link)
+
+        # Wait for response from @SaveMedia_bot (you can add a delay or timeout)
+        forward_message = client.listen()  # listen for the reply from SaveMedia bot
+        
+        # Send the result back to the user
+        client.send_message(message.chat.id, f"Here's your content: {forward_message.text}")
+
     else:
-        message.reply_text("Please send a valid social media link (Instagram, Facebook, etc.).")
+        client.send_message(message.chat.id, "Please send a valid social media link (Instagram, Facebook, etc.).")
