@@ -27,178 +27,128 @@ user_preferences = {}
 
 @app.on_message(filters.command("ask"))
 async def ai_chat(client, message):
-   try:
-       user_id = message.from_user.id
-       
-       # Check if message is provided
-       if len(message.command) < 2:
-           await message.reply_text(
-               "❌ Please provide a message.\n\nFormat: /ask <your_message>"
-           )
-           return
+    try:
+        user_id = message.from_user.id
+        
+        if len(message.command) < 2:
+            await message.reply_text(
+                "❌ Please provide a message.\n\nFormat: /ask <your_message>"
+            )
+            return
 
-       # Get user's preferred model or set default
-       model = user_preferences.get(user_id, 'claude-sonnet-3.5')
-       
-       # Extract message
-       user_message = " ".join(message.command[1:])
-       
-       # Handle model override
-       if "--model" in user_message:
-           try:
-               msg_parts = user_message.split("--model")
-               user_message = msg_parts[0].strip()
-               specified_model = msg_parts[1].strip()
-               
-               if specified_model in MODELS_INFO:
-                   model = specified_model
-               else:
-                   await message.reply_text(
-                       "❌ Invalid model specified! Using your preferred model instead."
-                   )
-           except:
-               await message.reply_text("❌ Invalid format, using your preferred model.")
+        model = user_preferences.get(user_id, 'claude-sonnet-3.5')
+        user_message = " ".join(message.command[1:])
+        
+        if "--model" in user_message:
+            try:
+                msg_parts = user_message.split("--model")
+                user_message = msg_parts[0].strip()
+                specified_model = msg_parts[1].strip()
+                
+                if specified_model in MODELS_INFO:
+                    model = specified_model
+                else:
+                    await message.reply_text("❌ Invalid model specified! Using your preferred model instead.")
+            except:
+                await message.reply_text("❌ Invalid format, using your preferred model.")
 
-       # Show typing action
-       await message.reply_chat_action(ChatAction.TYPING)
+        await message.reply_chat_action(ChatAction.TYPING)
 
-       # Make API request
-       async with aiohttp.ClientSession() as session:
-           api_url = API_URL.format(message=user_message, model=model)
-           async with session.get(api_url) as response:
-               if response.status == 200:
-                   raw_result = await response.text()
-                   
-                   try:
-                       # Parse JSON response
-                       json_response = json.loads(raw_result)
-                       result = json_response.get("result", "No response found")
-                       
-                       # Format the response with a nice UI
-                       response_text = f"""
-╔══════ ≪ °❈° ≫ ══════╗
- 🤖 **AI RESPONSE**
-╚══════ ≪ °❈° ≫ ══════╝
+        async with aiohttp.ClientSession() as session:
+            api_url = API_URL.format(message=user_message, model=model)
+            async with session.get(api_url) as response:
+                if response.status == 200:
+                    raw_result = await response.text()
+                    
+                    try:
+                        json_response = json.loads(raw_result)
+                        result = json_response.get("result", "No response found")
+                        
+                        response_text = (
+                            "┏━━━━━━━━━━━━━━━━━━━━━┓\n"
+                            "┃      🤖 DNS X AI      ┃\n"
+                            "┗━━━━━━━━━━━━━━━━━━━━━┛\n\n"
+                            f"👤 **Question:**\n{user_message}\n\n"
+                            f"🔮 **Model:** `{model}`\n\n"
+                            f"📝 **Answer:**\n{result}\n\n"
+                            "━━━━━━━━━━━━━━━━━━━━━\n"
+                            "**Powered by DNS X AI**"
+                        )
+                    except json.JSONDecodeError:
+                        response_text = (
+                            "┏━━━━━━━━━━━━━━━━━━━━━┓\n"
+                            "┃      🤖 DNS X AI      ┃\n"
+                            "┗━━━━━━━━━━━━━━━━━━━━━┛\n\n"
+                            f"👤 **Question:**\n{user_message}\n\n"
+                            f"🔮 **Model:** `{model}`\n\n"
+                            f"📝 **Answer:**\n{raw_result}\n\n"
+                            "━━━━━━━━━━━━━━━━━━━━━\n"
+                            "**Powered by DNS X AI**"
+                        )
+                    
+                    try:
+                        if len(response_text) > 4096:
+                            chunks = [response_text[i:i+4096] for i in range(0, len(response_text), 4096)]
+                            for i, chunk in enumerate(chunks):
+                                if i == 0:
+                                    await message.reply_text(chunk)
+                                else:
+                                    await message.reply_text(f"**Continued Part {i+1}**\n\n{chunk}")
+                        else:
+                            await message.reply_text(response_text)
+                    except Exception as e:
+                        await message.reply_text(f"❌ Error in sending response: {str(e)}")
+                else:
+                    await message.reply_text(f"❌ Error: API response status {response.status}")
 
-👤 **Question:**
-{user_message}
-
-🔮 **Model:** `{model}`
-
-📝 **Answer:**
-{result}
-
-═══════════════════
-**𝗗𝗡𝗦 𝗫 𝗔𝗜**"""
-                   except json.JSONDecodeError:
-                       # If not JSON, use raw response
-                       response_text = f"""
-╔══════ ≪ °❈° ≫ ══════╗
- 🤖 **AI RESPONSE**
-╚══════ ≪ °❈° ≫ ══════╝
-
-👤 **Question:**
-{user_message}
-
-🔮 **Model:** `{model}`
-
-📝 **Answer:**
-{raw_result}
-
-═══════════════════
-**𝗗𝗡𝗦 𝗫 𝗔𝗜**"""
-                   
-                   # Split response if too long
-                   try:
-                       if len(response_text) > 4096:
-                           # First chunk with header
-                           first_chunk = response_text[:4000] + "\n\n... (continued)"
-                           await message.reply_text(first_chunk)
-                           
-                           # Remaining text without header
-                           remaining_text = response_text[4000:]
-                           while remaining_text:
-                               chunk = remaining_text[:4000]
-                               remaining_text = remaining_text[4000:]
-                               if remaining_text:
-                                   chunk += "\n\n... (continued)"
-                               await message.reply_text(chunk)
-                       else:
-                           await message.reply_text(response_text)
-                   except Exception as e:
-                       await message.reply_text(f"❌ Error in sending response: {str(e)}")
-               else:
-                   await message.reply_text(
-                       f"❌ Error: API response status {response.status}"
-                   )
-
-   except Exception as e:
-       await message.reply_text(f"❌ Error occurred: {str(e)}")
+    except Exception as e:
+        await message.reply_text(f"❌ Error occurred: {str(e)}")
 
 @app.on_message(filters.command("aimodels"))
 async def select_model(client, message):
-   try:
-       user_id = message.from_user.id
-       
-       # Create keyboard with models
-       keyboard = []
-       row = []
-       for i, (model, desc) in enumerate(MODELS_INFO.items()):
-           # Create 2 buttons per row
-           if i % 2 == 0 and row:
-               keyboard.append(row)
-               row = []
-           row.append(InlineKeyboardButton(
-               f"{model.split('-')[0].capitalize()}",
-               callback_data=f"select_model_{model}"
-           ))
-       if row:
-           keyboard.append(row)
+    try:
+        keyboard = []
+        for model, desc in MODELS_INFO.items():
+            keyboard.append([
+                InlineKeyboardButton(
+                    f"{model} | {desc}",
+                    callback_data=f"select_model_{model}"
+                )
+            ])
 
-       text = "**🤖 Select Your Preferred AI Model:**\n\n"
-       for model, desc in MODELS_INFO.items():
-           text += f"**{model}**\n{desc}\n\n"
-       
-       await message.reply_text(
-           text,
-           reply_markup=InlineKeyboardMarkup(keyboard)
-       )
-   except Exception as e:
-       await message.reply_text(f"❌ Error: {str(e)}")
-
-@app.on_callback_query(filters.regex("^select_model_"))
-async def model_selected(client, callback_query):
-   try:
-       user_id = callback_query.from_user.id
-       selected_model = callback_query.data.replace("select_model_", "")
-       
-       user_preferences[user_id] = selected_model
-       
-       await callback_query.message.edit_text(
-           f"✅ Your preferred model has been set to **{selected_model}**\n\n"
-           "You can now use /ask command directly without specifying the model.\n"
-           "To change model anytime, use /aimodels again."
-       )
-   except Exception as e:
-       await callback_query.message.edit_text(f"❌ Error: {str(e)}")
+        text = (
+            "**🤖 Available AI Models**\n\n"
+            "• Select your preferred AI model from below\n"
+            "• Currently using: Claude-3.5 (Default)\n"
+            "• Click on any model to set as default\n\n"
+            "**Available Models:**"
+        )
+        
+        await message.reply_text(
+            text,
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+    except Exception as e:
+        await message.reply_text(f"❌ Error: {str(e)}")
 
 @app.on_message(filters.command("aihelp"))
 async def help_command(_, message):
-   try:
-       help_text = """
-**🤖 AI Chat Assistant Help**
-
-**Available Commands:**
-⊚ /ask <message> - Chat with AI using your preferred model
-⊚ /aimodels - Select your preferred AI model
-⊚ /aihelp - Show this help message
-
-**Note:** 
-- New users will automatically use Claude-3.5 model
-- You can change your preferred model anytime using /aimodels
-- You can still override your preference by using:
- `/ask <message> --model <model_name>`
-"""
-       await message.reply_text(help_text)
-   except Exception as e:
-       await message.reply_text(f"❌ Error: {str(e)}")
+    try:
+        help_text = (
+            "**🤖 DNS X AI Help Menu**\n\n"
+            "**Available Commands:**\n"
+            "• /ask - Chat with AI\n"
+            "• /aimodels - Select AI model\n"
+            "• /aihelp - Show this help\n\n"
+            "**How to Use:**\n"
+            "1. Use /aimodels to select your preferred AI model\n"
+            "2. Use /ask followed by your question\n"
+            "3. Default model is Claude-3.5\n\n"
+            "**Example:**\n"
+            "`/ask What is artificial intelligence?`\n\n"
+            "**Note:** You can change model anytime using /aimodels"
+        )
+        
+        await message.reply_text(help_text)
+    except Exception as e:
+        await message.reply_text(f"❌ Error: {str(e)}")
