@@ -7,4 +7,4 @@
 #
 # All rights reserved.
 
-from .config import *
+from .config import BANNED_USERS, lyrical, AYU
