@@ -27,82 +27,67 @@ user_preferences = {}
 
 @app.on_message(filters.command("ask"))
 async def ai_chat(client, message):
-    try:
-        user_id = message.from_user.id
-        
-        if len(message.command) < 2:
-            await message.reply_text(
-                "❌ Please provide a message.\n\nFormat: /ask <your_message>"
-            )
-            return
+   try:
+       user_id = message.from_user.id
+       
+       if len(message.command) < 2:
+           await message.reply_text(
+               "❌ Please provide a message.\n\nFormat: /ask <your_message>"
+           )
+           return
 
-        model = user_preferences.get(user_id, 'claude-sonnet-3.5')
-        user_message = " ".join(message.command[1:])
-        
-        if "--model" in user_message:
-            try:
-                msg_parts = user_message.split("--model")
-                user_message = msg_parts[0].strip()
-                specified_model = msg_parts[1].strip()
-                
-                if specified_model in MODELS_INFO:
-                    model = specified_model
-                else:
-                    await message.reply_text("❌ Invalid model specified! Using your preferred model instead.")
-            except:
-                await message.reply_text("❌ Invalid format, using your preferred model.")
+       model = user_preferences.get(user_id, 'claude-sonnet-3.5')
+       user_message = " ".join(message.command[1:])
+       
+       if "--model" in user_message:
+           try:
+               msg_parts = user_message.split("--model")
+               user_message = msg_parts[0].strip()
+               specified_model = msg_parts[1].strip()
+               
+               if specified_model in MODELS_INFO:
+                   model = specified_model
+               else:
+                   await message.reply_text("❌ Invalid model specified! Using your preferred model instead.")
+           except:
+               await message.reply_text("❌ Invalid format, using your preferred model.")
 
-        await message.reply_chat_action(ChatAction.TYPING)
+       await message.reply_chat_action(ChatAction.TYPING)
 
-        async with aiohttp.ClientSession() as session:
-            api_url = API_URL.format(message=user_message, model=model)
-            async with session.get(api_url) as response:
-                if response.status == 200:
-                    raw_result = await response.text()
-                    
-                    try:
-                        json_response = json.loads(raw_result)
-                        result = json_response.get("result", "No response found")
-                        
-                        response_text = (
-                            "┏━━━━━━━━━━━━━━━━━━━━━┓\n"
-                            "┃      🤖 DNS X AI      ┃\n"
-                            "┗━━━━━━━━━━━━━━━━━━━━━┛\n\n"
-                            f"👤 **Question:**\n{user_message}\n\n"
-                            f"🔮 **Model:** `{model}`\n\n"
-                            f"📝 **Answer:**\n{result}\n\n"
-                            "━━━━━━━━━━━━━━━━━━━━━\n"
-                            "**Powered by DNS X AI**"
-                        )
-                    except json.JSONDecodeError:
-                        response_text = (
-                            "┏━━━━━━━━━━━━━━━━━━━━━┓\n"
-                            "┃      🤖 DNS X AI      ┃\n"
-                            "┗━━━━━━━━━━━━━━━━━━━━━┛\n\n"
-                            f"👤 **Question:**\n{user_message}\n\n"
-                            f"🔮 **Model:** `{model}`\n\n"
-                            f"📝 **Answer:**\n{raw_result}\n\n"
-                            "━━━━━━━━━━━━━━━━━━━━━\n"
-                            "**Powered by DNS X AI**"
-                        )
-                    
-                    try:
-                        if len(response_text) > 4096:
-                            chunks = [response_text[i:i+4096] for i in range(0, len(response_text), 4096)]
-                            for i, chunk in enumerate(chunks):
-                                if i == 0:
-                                    await message.reply_text(chunk)
-                                else:
-                                    await message.reply_text(f"**Continued Part {i+1}**\n\n{chunk}")
-                        else:
-                            await message.reply_text(response_text)
-                    except Exception as e:
-                        await message.reply_text(f"❌ Error in sending response: {str(e)}")
-                else:
-                    await message.reply_text(f"❌ Error: API response status {response.status}")
+       async with aiohttp.ClientSession() as session:
+           api_url = API_URL.format(message=user_message, model=model)
+           async with session.get(api_url) as response:
+               if response.status == 200:
+                   raw_result = await response.text()
+                   
+                   try:
+                       json_response = json.loads(raw_result)
+                       result = json_response.get("result", "No response found")
+                       
+                       response_text = (
+                           f"🔮 **Model:** `{model}`\n\n"
+                           f"📝 **Answer:**\n{result}"
+                       )
+                   except json.JSONDecodeError:
+                       response_text = (
+                           f"🔮 **Model:** `{model}`\n\n"
+                           f"📝 **Answer:**\n{raw_result}"
+                       )
+                   
+                   try:
+                       if len(response_text) > 4096:
+                           chunks = [response_text[i:i+4096] for i in range(0, len(response_text), 4096)]
+                           for i, chunk in enumerate(chunks):
+                               await message.reply_text(chunk)
+                       else:
+                           await message.reply_text(response_text)
+                   except Exception as e:
+                       await message.reply_text(f"❌ Error in sending response: {str(e)}")
+               else:
+                   await message.reply_text(f"❌ Error: API response status {response.status}")
 
-    except Exception as e:
-        await message.reply_text(f"❌ Error occurred: {str(e)}")
+   except Exception as e:
+       await message.reply_text(f"❌ Error occurred: {str(e)}")
 
 @app.on_message(filters.command("aimodels"))
 async def select_model(client, message):
