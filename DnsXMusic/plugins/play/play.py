@@ -16,7 +16,7 @@ from pyrogram.errors import FloodWait
 from pyrogram.types import InlineKeyboardMarkup, InputMediaPhoto, Message
 
 import config
-from config import BANNED_USERS, lyrical, play_messages
+from config import BANNED_USERS, lyrical, AYU
 from DnsXMusic import Apple, Resso, SoundCloud, Spotify, Telegram, YouTube, app
 from DnsXMusic.utils import seconds_to_min, time_to_seconds
 from DnsXMusic.utils.channelplay import get_channeplayCB
@@ -67,7 +67,7 @@ async def play_commnd(
     fplay,
 ):
     mystic = await message.reply_text(
-        _["play_2"].format(channel) if channel else random.choice(play_messages)
+        _["play_2"].format(channel) if channel else random.choice(AYU)
 
     )
     plist_id = None
