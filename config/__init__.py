@@ -7,4 +7,5 @@
 #
 # All rights reserved.
 
-from .config import BANNED_USERS, lyrical, AYU
+from .config import *
+__all__ = ['BANNED_USERS', 'lyrical', 'AYU']
