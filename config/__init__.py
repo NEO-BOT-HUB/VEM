@@ -8,4 +8,3 @@
 # All rights reserved.
 
 from .config import *
-__all__ = ['BANNED_USERS', 'lyrical', 'AYU']
