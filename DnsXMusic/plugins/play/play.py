@@ -16,7 +16,7 @@ from pyrogram.errors import FloodWait
 from pyrogram.types import InlineKeyboardMarkup, InputMediaPhoto, Message
 
 import config
-from config import BANNED_USERS, lyrical, AYU
+from config import BANNED_USERS, lyrical
 from DnsXMusic import Apple, Resso, SoundCloud, Spotify, Telegram, YouTube, app
 from DnsXMusic.utils import seconds_to_min, time_to_seconds
 from DnsXMusic.utils.channelplay import get_channeplayCB
