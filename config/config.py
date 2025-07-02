@@ -26,7 +26,7 @@ API_HASH = getenv("API_HASH")
 ## Get it from @Botfather in Telegram.
 BOT_TOKEN = getenv("BOT_TOKEN")
 
-BOT_USERNAME = getenv("BOT_USERNAME", "EraVibesXbot")
+BOT_USERNAME = getenv("BOT_USERNAME", "NEO_MUSIC_ROBOT")
 
 
 # Database to save your chats and stats... Get MongoDB:-  https://telegra.ph/How-To-get-Mongodb-URI-04-06
@@ -72,12 +72,12 @@ SONG_DOWNLOAD_DURATION = int(
 
 
 # You'll need a Private Group ID for this.
-LOG_GROUP_ID = int(getenv("LOG_GROUP_ID", ""))
+LOG_GROUP_ID = int(getenv("LOG_GROUP_ID", "-1002512951867"))
 
 
 # Your User ID.
 OWNER_ID = list(
-    map(int, getenv("OWNER_ID", "1679112664").split())
+    map(int, getenv("OWNER_ID", "7949478281").split())
 )  # Input type must be interger
 
 
@@ -111,11 +111,11 @@ GIT_TOKEN = getenv(
 
 # Only  Links formats are  accepted for this Var value.
 SUPPORT_CHANNEL = getenv(
-    "SUPPORT_CHANNEL", "https://t.me/Dns_Official_Channel"
-)  # Example:- https://t.me/TheTeamVivek
+    "SUPPORT_CHANNEL", "https://t.me/ABOUT_VENOM_OP"
+)  # Example:- https://t.me/ABOUT_VENOM_OP
 SUPPORT_GROUP = getenv(
-    "SUPPORT_GROUP", "https://t.me/DNS_NETWORK"
-)  # Example:- https://t.me/TheTeamVk
+    "SUPPORT_GROUP", "https://t.me/NEO_BOT_SUPPORT"
+)  # Example:- https://t.me/NEO_BOT_SUPPORT
 
 
 # Set it in True if you want to leave your assistant after a certain amount of time. [Set time via AUTO_LEAVE_ASSISTANT_TIME]
@@ -139,7 +139,7 @@ TELEGRAM_DOWNLOAD_EDIT_SLEEP = int(getenv("TELEGRAM_EDIT_SLEEP", "5"))
 
 
 # Your Github Repo.. Will be shown on /start Command
-GITHUB_REPO = getenv("GITHUB_REPO", "https://t.me/Dns_Official_Channel")
+GITHUB_REPO = getenv("GITHUB_REPO", "https://t.me/ABOUT_VENOM_OP")
 
 
 # Spotify Client.. Get it from https://developer.spotify.com/dashboard
